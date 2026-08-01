@@ -1,0 +1,57 @@
+package com.recruitflow.service;
+
+import com.recruitflow.dto.CreateJobRequest;
+import com.recruitflow.model.Job;
+import com.recruitflow.repository.JobRepository;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class JobService {
+    private final JobRepository jobRepository;
+
+    public JobService(JobRepository jobRepository) {
+        this.jobRepository = jobRepository;
+    }
+
+    public Job create(CreateJobRequest req) {
+        Job job = new Job();
+        job.setTitle(req.title());
+        job.setDescription(req.description());
+        job.setSkills(req.skills());
+        job.setLocation(req.location());
+        job.setExperienceRequired(req.experienceRequired());
+        job.setRecruiterId(req.recruiterId());
+        job.setStatus(Job.Status.DRAFT);
+        return jobRepository.save(job);
+    }
+
+    public Job edit(Long id, CreateJobRequest req) {
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Job not found"));
+        job.setTitle(req.title());
+        job.setDescription(req.description());
+        job.setSkills(req.skills());
+        job.setLocation(req.location());
+        job.setExperienceRequired(req.experienceRequired());
+        return jobRepository.save(job);
+    }
+
+    public Job close(Long id) {
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Job not found"));
+        job.setStatus(Job.Status.CLOSED);
+        return jobRepository.save(job);
+    }
+
+    public Job open(Long id) {
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Job not found"));
+        job.setStatus(Job.Status.OPEN);
+        return jobRepository.save(job);
+    }
+
+    public List<Job> search(String skill, String location, Integer experience) {
+        return jobRepository.search(skill, location, experience);
+    }
+}
