@@ -1,16 +1,50 @@
-# RecruitFlow — Day 1 status
+# RecruitFlow
 
-## Running locally
-1. Start PostgreSQL, create `auth_db` in pgAdmin
-2. Run eureka-server (port 8761)
-3. Run api-gateway (port 8080)
-4. Run auth-service (port 8081)
+## Services
+- Eureka Server
+- API Gateway
+- Auth Service
+- Job Service
+- Profile Service
 
-## Working
-- Eureka registry
-- Gateway routing + JWT validation
-- Auth: register, login (JWT issuance)
+## Tech Stack
+- Java 21
+- Spring Boot
+- Spring Cloud Eureka
+- Spring Data JPA
+- PostgreSQL
+- Maven
 
-## Not yet built
-- Job, Profile, Application, Interview, Notification services
-- React frontend
+## Running the Project
+
+1. Start PostgreSQL
+2. Start Eureka Server
+3. Start API Gateway
+4. Start Auth Service
+5. Start Job Service
+6. Start Profile Service
+
+## API Testing
+
+### Auth
+- Register
+- Login
+
+### Jobs
+- Create Job
+- Open Job
+- Close Job
+- Search Jobs
+
+### Profiles
+- Create Candidate Profile
+- Get Candidate Profile
+- Create Recruiter Profile
+- Get Recruiter Profile
+
+## Tests
+
+JUnit tests cover:
+- Search by single filter
+- Search by multiple filters
+- Search with no matching results
