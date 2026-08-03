@@ -114,4 +114,8 @@ public class JobApplicationService {
             log.warn("Failed to send notification to user {}: {}", userId, e.getMessage());
         }
     }
+
+    public JobApplication getById(Long id) {
+        return getOrThrow(id);
+    }
 }

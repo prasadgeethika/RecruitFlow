@@ -60,6 +60,15 @@ public class JobApplicationController {
         return guarded(() -> service.markHired(id));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(service.getById(id));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     private ResponseEntity<?> guarded(java.util.function.Supplier<JobApplication> action) {
         try {
             return ResponseEntity.ok(action.get());
