@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class JobApplicationService {
     private static final Logger log = LoggerFactory.getLogger(JobApplicationService.class);
@@ -117,5 +119,13 @@ public class JobApplicationService {
 
     public JobApplication getById(Long id) {
         return getOrThrow(id);
+    }
+
+    public List<JobApplication> getApplicationsByCandidate(Long candidateId) {
+        return repo.findByCandidateId(candidateId);
+    }
+
+    public List<JobApplication> getApplicationsByJob(Long jobId) {
+        return repo.findByJobId(jobId);
     }
 }

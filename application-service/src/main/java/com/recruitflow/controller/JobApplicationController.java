@@ -69,6 +69,24 @@ public class JobApplicationController {
         }
     }
 
+    @GetMapping("/candidate/{candidateId}")
+    public ResponseEntity<?> getApplicationsByCandidate(@PathVariable Long candidateId) {
+        try {
+            return ResponseEntity.ok(service.getApplicationsByCandidate(candidateId));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/job/{jobId}")
+    public ResponseEntity<?> getApplicationsByJob(
+            @PathVariable Long jobId) {
+
+        return ResponseEntity.ok(
+                service.getApplicationsByJob(jobId)
+        );
+    }
+
     private ResponseEntity<?> guarded(java.util.function.Supplier<JobApplication> action) {
         try {
             return ResponseEntity.ok(action.get());
