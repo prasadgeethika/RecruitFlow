@@ -18,4 +18,6 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     List<Job> search(@Param("skill") String skill,
                      @Param("location") String location,
                      @Param("minExperience") Integer minExperience);
+
+    List<Job> findByRecruiterId(Long recruiterId);
 }

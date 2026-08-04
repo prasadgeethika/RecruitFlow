@@ -54,4 +54,8 @@ public class JobService {
     public List<Job> search(String skill, String location, Integer experience) {
         return jobRepository.search(skill, location, experience);
     }
+
+    public List<Job> getJobsByRecruiter(Long recruiterId) {
+        return jobRepository.findByRecruiterId(recruiterId);
+    }
 }

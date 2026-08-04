@@ -43,4 +43,13 @@ public class JobController {
             @RequestParam(required = false) Integer experience) {
         return ResponseEntity.ok(jobService.search(skill, location, experience));
     }
+
+    @GetMapping("/recruiter/{recruiterId}")
+    public ResponseEntity<List<Job>> getRecruiterJobs(
+            @PathVariable Long recruiterId) {
+
+        return ResponseEntity.ok(
+                jobService.getJobsByRecruiter(recruiterId)
+        );
+    }
 }
