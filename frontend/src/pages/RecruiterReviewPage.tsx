@@ -100,22 +100,34 @@ export default function RecruiterReviewPage() {
 
                 <h2>Review Applications</h2>
 
-                <select
-                    value={selectedJob ?? ""}
-                    onChange={(e) => setSelectedJob(Number(e.target.value))}
-                >
-                    {jobs.map(job => (
-                        <option key={job.id} value={job.id}>
-                            {job.title}
-                        </option>
-                    ))}
-                </select>
+                {jobs.length === 0 ? (
+                    <p className="empty-state">
+                        You have no jobs yet. Create a job first and applications will appear here.
+                    </p>
+                ) : (
+                    <select
+                        value={selectedJob ?? ""}
+                        onChange={(e) => setSelectedJob(Number(e.target.value))}
+                    >
+                        {jobs.map(job => (
+                            <option key={job.id} value={job.id}>
+                                {job.title}
+                            </option>
+                        ))}
+                    </select>
+                )}
 
                 {loading && <p>Loading applications...</p>}
 
                 {message && <p className="success">{message}</p>}
 
                 {error && <p className="error">{error}</p>}
+
+                {jobs.length > 0 && applications.length === 0 && !loading && (
+                    <p className="empty-state">
+                        No applications found for this job yet.
+                    </p>
+                )}
 
                 <div className="job-list">
 

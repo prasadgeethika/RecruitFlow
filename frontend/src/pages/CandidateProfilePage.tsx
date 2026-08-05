@@ -16,6 +16,7 @@ export default function CandidateProfilePage() {
     const { userId } = useAuth();
 
     const [profileId, setProfileId] = useState<number | null>(null);
+    const [editMode, setEditMode] = useState(false);
 
     const [resumeUrl, setResumeUrl] = useState("");
     const [skills, setSkills] = useState("");
@@ -43,10 +44,11 @@ export default function CandidateProfilePage() {
             setSkills(profile.skills);
             setContactNumber(profile.contactNumber);
             setLocation(profile.location);
+            setEditMode(false);
 
         } catch {
 
-            // First time user -> no profile yet
+            setEditMode(true);
 
         } finally {
 
@@ -117,62 +119,69 @@ export default function CandidateProfilePage() {
 
             <div className="card">
 
-                <h2>Candidate Profile</h2>
-
-                <form
-                    className="auth-form"
-                    onSubmit={handleSubmit}
-                >
-
-                    <input
-                        placeholder="Resume URL"
-                        value={resumeUrl}
-                        onChange={(e) =>
-                            setResumeUrl(e.target.value)
-                        }
-                    />
-
-                    <input
-                        placeholder="Skills"
-                        value={skills}
-                        onChange={(e) =>
-                            setSkills(e.target.value)
-                        }
-                    />
-
-                    <input
-                        placeholder="Contact Number"
-                        value={contactNumber}
-                        onChange={(e) =>
-                            setContactNumber(e.target.value)
-                        }
-                    />
-
-                    <input
-                        placeholder="Location"
-                        value={location}
-                        onChange={(e) =>
-                            setLocation(e.target.value)
-                        }
-                    />
-
-                    <button type="submit">
-
-                        {profileId == null
-                            ? "Create Profile"
-                            : "Update Profile"}
-
+                <div className="page-header">
+                    <div>
+                        <h2>Candidate Profile</h2>
+                        <p className="section-copy">Your profile is read-only until you click edit.</p>
+                    </div>
+                    <button className="secondary" type="button" onClick={() => setEditMode((open) => !open)}>
+                        {editMode ? 'Cancel' : 'Edit Profile'}
                     </button>
+                </div>
 
-                </form>
+                {!editMode ? (
+                    <div className="profile-view">
+                        <div className="profile-row">
+                            <span>Resume URL</span>
+                            <strong>{resumeUrl || 'Not set'}</strong>
+                        </div>
+                        <div className="profile-row">
+                            <span>Skills</span>
+                            <strong>{skills || 'Not set'}</strong>
+                        </div>
+                        <div className="profile-row">
+                            <span>Contact Number</span>
+                            <strong>{contactNumber || 'Not set'}</strong>
+                        </div>
+                        <div className="profile-row">
+                            <span>Location</span>
+                            <strong>{location || 'Not set'}</strong>
+                        </div>
+                    </div>
+                ) : (
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <input
+                            placeholder="Resume URL"
+                            value={resumeUrl}
+                            onChange={(e) => setResumeUrl(e.target.value)}
+                        />
 
-                {message && (
-                    <p className="success">{message}</p>
+                        <input
+                            placeholder="Skills"
+                            value={skills}
+                            onChange={(e) => setSkills(e.target.value)}
+                        />
+
+                        <input
+                            placeholder="Contact Number"
+                            value={contactNumber}
+                            onChange={(e) => setContactNumber(e.target.value)}
+                        />
+
+                        <input
+                            placeholder="Location"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                        />
+
+                        <button type="submit">
+                            {profileId == null ? 'Create Profile' : 'Save Changes'}
+                        </button>
+                    </form>
                 )}
 
-                {error && (
-                    <p className="error">{error}</p>
-                )}
+                {message && <p className="success">{message}</p>}
+                {error && <p className="error">{error}</p>}
 
             </div>
 

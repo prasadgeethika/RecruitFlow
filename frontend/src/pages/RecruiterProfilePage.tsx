@@ -14,6 +14,7 @@ export default function RecruiterProfilePage() {
     const { userId } = useAuth();
 
     const [profileId, setProfileId] = useState<number | null>(null);
+    const [editMode, setEditMode] = useState(false);
 
     const [department, setDepartment] = useState("");
     const [designation, setDesignation] = useState("");
@@ -37,8 +38,9 @@ export default function RecruiterProfilePage() {
             setDepartment(response.data.department);
             setDesignation(response.data.designation);
             setCompany(response.data.company);
+            setEditMode(false);
         } catch {
-            // No profile yet
+            setEditMode(true);
         } finally {
             setLoading(false);
         }
@@ -87,38 +89,59 @@ export default function RecruiterProfilePage() {
     return (
         <div className="page">
             <div className="card">
-
-                <h2>Recruiter Profile</h2>
-
-                <form className="auth-form" onSubmit={handleSubmit}>
-
-                    <input
-                        placeholder="Company"
-                        value={company}
-                        onChange={(e) => setCompany(e.target.value)}
-                    />
-
-                    <input
-                        placeholder="Department"
-                        value={department}
-                        onChange={(e) => setDepartment(e.target.value)}
-                    />
-
-                    <input
-                        placeholder="Designation"
-                        value={designation}
-                        onChange={(e) => setDesignation(e.target.value)}
-                    />
-
-                    <button type="submit">
-                        {profileId ? "Update Profile" : "Create Profile"}
+                <div className="page-header">
+                    <div>
+                        <h2>Recruiter Profile</h2>
+                        <p className="section-copy">Your profile is read-only until you click edit.</p>
+                    </div>
+                    <button className="secondary" type="button" onClick={() => setEditMode((open) => !open)}>
+                        {editMode ? 'Cancel' : 'Edit Profile'}
                     </button>
+                </div>
 
-                </form>
+                {!editMode ? (
+                    <div className="profile-view">
+                        <div className="profile-row">
+                            <span>Company</span>
+                            <strong>{company || 'Not set'}</strong>
+                        </div>
+                        <div className="profile-row">
+                            <span>Department</span>
+                            <strong>{department || 'Not set'}</strong>
+                        </div>
+                        <div className="profile-row">
+                            <span>Designation</span>
+                            <strong>{designation || 'Not set'}</strong>
+                        </div>
+                    </div>
+                ) : (
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <input
+                            placeholder="Company"
+                            value={company}
+                            onChange={(e) => setCompany(e.target.value)}
+                        />
+
+                        <input
+                            placeholder="Department"
+                            value={department}
+                            onChange={(e) => setDepartment(e.target.value)}
+                        />
+
+                        <input
+                            placeholder="Designation"
+                            value={designation}
+                            onChange={(e) => setDesignation(e.target.value)}
+                        />
+
+                        <button type="submit">
+                            {profileId ? 'Save Changes' : 'Create Profile'}
+                        </button>
+                    </form>
+                )}
 
                 {message && <p className="success">{message}</p>}
                 {error && <p className="error">{error}</p>}
-
             </div>
         </div>
     );

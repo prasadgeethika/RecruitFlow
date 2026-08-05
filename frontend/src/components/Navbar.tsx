@@ -1,50 +1,46 @@
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
+    const { role } = useAuth();
 
-    const { role, email, logout } = useAuth();
+    const navItems = [
+        { path: '/jobs', label: 'Jobs' },
+        { path: '/notifications', label: 'Notifications' },
+    ];
 
-    const navigate = useNavigate();
+    if (role === 'CANDIDATE') {
+        navItems.push({ path: '/applications', label: 'My Applications' });
+        navItems.push({ path: '/candidate-profile', label: 'My Profile' });
+    }
 
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
+    if (role === 'RECRUITER') {
+        navItems.push({ path: '/create-job', label: 'Create Job' });
+        navItems.push({ path: '/review-applications', label: 'Review Applications' });
+        navItems.push({ path: '/schedule-interview', label: 'Schedule Interview' });
+        navItems.push({ path: '/feedback', label: 'Interview Feedback' });
+        navItems.push({ path: '/recruiter-profile', label: 'My Profile' });
+    }
 
     return (
         <nav className="navbar">
             <div className="navbar-top">
                 <div>
-                    <h2>RecruitFlow</h2>
-                    <p className="user-meta">
-                        Signed in as <strong>{email ?? "Unknown user"}</strong>
-                        {role ? ` · ${role.toLowerCase()}` : ""}
-                    </p>
+                    <p className="sidebar-logo">RecruitFlow</p>
+                    <p className="sidebar-role">{role === 'RECRUITER' ? 'Recruiter' : 'Candidate'}</p>
                 </div>
             </div>
 
             <div className="nav-links">
-                <Link to="/jobs">Jobs</Link>
-                <Link to="/notifications">Notifications</Link>
-
-                {role === "CANDIDATE" && (
-                    <>
-                        <Link to="/applications">My Applications</Link>
-                        <Link to="/candidate-profile">My Profile</Link>
-                    </>
-                )}
-
-                {role === "RECRUITER" && (
-                    <>
-                        <Link to="/my-jobs">My Jobs</Link>
-                        <Link to="/create-job">Create Job</Link>
-                        <Link to="/review-applications">Review Applications</Link>
-                        <Link to="/schedule-interview">Schedule Interview</Link>
-                        <Link to="/feedback">Interview Feedback</Link>
-                        <Link to="/recruiter-profile">My Profile</Link>
-                    </>
-                )}
+                {navItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
+                        className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                    >
+                        {item.label}
+                    </NavLink>
+                ))}
             </div>
         </nav>
     );

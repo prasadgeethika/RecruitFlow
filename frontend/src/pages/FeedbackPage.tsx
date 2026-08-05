@@ -59,23 +59,29 @@ export default function FeedbackPage() {
                         onChange={(e) => setApplicationId(e.target.value)}
                     />
 
-                    <input
-                        type="number"
-                        placeholder="Technical Score"
-                        value={technicalScore}
-                        onChange={(e) =>
-                            setTechnicalScore(Number(e.target.value))
-                        }
-                    />
+                    <label className="field-label">
+                        Technical Score
+                        <input
+                            type="number"
+                            placeholder="Enter technical score (1-10)"
+                            value={technicalScore}
+                            onChange={(e) => setTechnicalScore(Number(e.target.value))}
+                            min={1}
+                            max={10}
+                        />
+                    </label>
 
-                    <input
-                        type="number"
-                        placeholder="Communication Score"
-                        value={communicationScore}
-                        onChange={(e) =>
-                            setCommunicationScore(Number(e.target.value))
-                        }
-                    />
+                    <label className="field-label">
+                        Communication Score
+                        <input
+                            type="number"
+                            placeholder="Enter communication score (1-10)"
+                            value={communicationScore}
+                            onChange={(e) => setCommunicationScore(Number(e.target.value))}
+                            min={1}
+                            max={10}
+                        />
+                    </label>
 
                     <textarea
                         placeholder="Comments"

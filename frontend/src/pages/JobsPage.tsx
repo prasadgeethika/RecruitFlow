@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api, { getErrorMessage } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,11 +22,14 @@ export default function JobsPage() {
 
   const [loading, setLoading] = useState(false);
   const [applyingId, setApplyingId] = useState<number | null>(null);
+  const [busyJobId, setBusyJobId] = useState<number | null>(null);
+  const [appliedJobIds, setAppliedJobIds] = useState<number[]>([]);
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   const { userId, role } = useAuth();
+  const navigate = useNavigate();
 
   const search = async (
       searchSkill = skill,
@@ -53,11 +57,28 @@ export default function JobsPage() {
 
   useEffect(() => {
     void search();
+    void loadAppliedJobs();
   }, []);
+
+  const loadAppliedJobs = async () => {
+    if (!userId || role !== 'CANDIDATE') return;
+
+    try {
+      const response = await api.get<{ jobId: number }[]>(`/applications/candidate/${userId}`);
+      setAppliedJobIds(response.data.map((application) => application.jobId));
+    } catch {
+      setAppliedJobIds([]);
+    }
+  };
 
   const apply = async (job: Job) => {
     if (userId === null) {
       setError('Please login again.');
+      return;
+    }
+
+    if (appliedJobIds.includes(job.id)) {
+      setError(`You already applied for "${job.title}".`);
       return;
     }
 
@@ -72,9 +93,15 @@ export default function JobsPage() {
         coverLetter: '',
       });
 
+      setAppliedJobIds((current) => [...current, job.id]);
       setMessage(`Successfully applied for "${job.title}".`);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage.toLowerCase().includes('already')) {
+        setError(`You already applied for "${job.title}".`);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setApplyingId(null);
     }
@@ -86,6 +113,28 @@ export default function JobsPage() {
     setExperience('');
 
     await search('', '', '');
+  };
+
+  const toggleJobStatus = async (job: Job) => {
+    setBusyJobId(job.id);
+    setError('');
+    setMessage('');
+
+    const action = job.status === 'OPEN' ? 'close' : 'open';
+
+    try {
+      await api.put(`/jobs/${job.id}/${action}`);
+      setMessage(
+        action === 'open'
+          ? `"${job.title}" is now open to candidates.`
+          : `"${job.title}" has been closed.`
+      );
+      await search();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setBusyJobId(null);
+    }
   };
 
   return (
@@ -150,40 +199,77 @@ export default function JobsPage() {
 
           <div className="job-list">
 
-            {jobs.map((job) => (
+            {jobs.map((job) => {
+              const alreadyApplied = appliedJobIds.includes(job.id);
+              const statusClass = job.status?.toLowerCase() === 'open'
+                ? 'status-open'
+                : job.status?.toLowerCase() === 'closed'
+                  ? 'status-closed'
+                  : 'status-draft';
+
+              return (
                 <div key={job.id} className="job-card">
+                  <div className="job-card-header">
+                    <div>
+                      <h3>{job.title}</h3>
+                      <div className="job-meta-row">
+                        <span>{job.location} • {job.experienceRequired}+ Years</span>
+                        <span className="job-type">Full-time</span>
+                      </div>
+                    </div>
+                    <span className={`status ${statusClass}`}>{job.status}</span>
+                  </div>
 
-                  <h3>{job.title}</h3>
+                  <p className="job-description">{job.description}</p>
 
-                  <p>{job.description}</p>
+                  <div className="skill-row">
+                    {job.skills.split(',').map((skillItem) => (
+                      <span key={skillItem.trim()} className="skill-chip">{skillItem.trim()}</span>
+                    ))}
+                  </div>
 
-                  <p>
-                    <strong>Skills:</strong> {job.skills}
-                  </p>
-
-                  <p>
-                    <strong>Location:</strong> {job.location}
-                  </p>
-
-                  <p>
-                    <strong>Experience:</strong> {job.experienceRequired}+ years
-                  </p>
-
-                  <p>
-                    <strong>Status:</strong> {job.status}
-                  </p>
-
-                  {role === 'CANDIDATE' && (
-                      <button
-                          disabled={applyingId === job.id}
+                  <div className="job-card-footer">
+                    <span className="job-posted">Posted recently</span>
+                    <div className="action-group">
+                      {role === 'CANDIDATE' && (
+                        <button
+                          disabled={alreadyApplied || applyingId === job.id}
                           onClick={() => void apply(job)}
-                      >
-                        {applyingId === job.id ? 'Applying...' : 'Apply'}
-                      </button>
-                  )}
-
+                        >
+                          {alreadyApplied
+                            ? 'Applied'
+                            : applyingId === job.id
+                              ? 'Applying...'
+                              : 'Apply'}
+                        </button>
+                      )}
+                      {role === 'RECRUITER' && job.recruiterId === userId && (
+                        <>
+                          <button
+                            type="button"
+                            className="secondary"
+                            onClick={() => navigate(`/edit-job/${job.id}`, { state: job })}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyJobId === job.id}
+                            onClick={() => void toggleJobStatus(job)}
+                          >
+                            {busyJobId === job.id
+                              ? 'Updating...'
+                              : job.status === 'OPEN'
+                                ? 'Close'
+                                : 'Publish'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-            ))}
+              );
+            })}
 
           </div>
 

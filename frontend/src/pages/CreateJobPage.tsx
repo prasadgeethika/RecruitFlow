@@ -88,12 +88,16 @@ export default function CreateJobPage() {
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                     />
-                    <input
-                        type="number"
-                        placeholder="Experience Required"
-                        value={experienceRequired}
-                        onChange={(e) => setExperienceRequired(Number(e.target.value))}
-                    />
+                    <label className="field-label">
+                        Years of experience required
+                        <input
+                            type="number"
+                            placeholder="Enter years of experience"
+                            value={experienceRequired}
+                            onChange={(e) => setExperienceRequired(Number(e.target.value))}
+                            min={0}
+                        />
+                    </label>
 
                     <button type="submit" disabled={createdJobId !== null}>
                         Create Job

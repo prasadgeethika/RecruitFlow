@@ -78,7 +78,7 @@ export default function ApplicationsPage() {
 
                         <div className="job-card" key={application.id}>
 
-                            <h3>Application #{application.id}</h3>
+                            <h3>Application details</h3>
 
                             <p>
                                 <strong>Job ID:</strong> {application.jobId}

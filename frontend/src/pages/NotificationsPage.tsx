@@ -91,47 +91,39 @@ export default function NotificationsPage() {
                     <p>No notifications.</p>
                 )}
 
-                <div className="job-list">
-
+                <div className="notification-list">
                     {notifications.map((notification) => (
-
                         <div
                             key={notification.id}
-                            className="job-card"
+                            className={`notification-card ${notification.read ? '' : 'notification-unread'}`}
                         >
+                            <div className="notification-top">
+                                <span className="notification-icon">🔔</span>
+                                <div>
+                                    <p className="notification-title">{notification.read ? 'Notification' : 'New update'}</p>
+                                    <p className="notification-time">
+                                        {new Date(notification.createdAt).toLocaleString()}
+                                    </p>
+                                </div>
+                            </div>
 
-                            <p>{notification.message}</p>
+                            <p className="notification-message">{notification.message}</p>
 
-                            <p>
-                                <strong>Date:</strong>{" "}
-                                {new Date(
-                                    notification.createdAt
-                                ).toLocaleString()}
-                            </p>
-
-                            <p>
-                                <strong>Status:</strong>{" "}
-                                {notification.read
-                                    ? "Read"
-                                    : "Unread"}
-                            </p>
-
-                            {!notification.read && (
-
-                                <button
-                                    onClick={() =>
-                                        void markRead(notification.id)
-                                    }
-                                >
-                                    Mark as Read
-                                </button>
-
-                            )}
-
+                            <div className="notification-actions">
+                                <span className={`badge ${notification.read ? 'badge-muted' : 'badge-blue'}`}>
+                                    {notification.read ? 'Read' : 'Unread'}
+                                </span>
+                                {!notification.read && (
+                                    <button
+                                        className="secondary"
+                                        onClick={() => void markRead(notification.id)}
+                                    >
+                                        Mark as read
+                                    </button>
+                                )}
+                            </div>
                         </div>
-
                     ))}
-
                 </div>
 
             </div>
