@@ -30,7 +30,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="page">
+    <div className="page auth-page">
       <div className="card">
         <h2>Login</h2>
         <form className="auth-form" onSubmit={handleSubmit}>

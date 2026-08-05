@@ -22,7 +22,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="page">
+    <div className="page auth-page">
       <div className="card">
         <h2>Register</h2>
         <form className="auth-form" onSubmit={handleSubmit}>
