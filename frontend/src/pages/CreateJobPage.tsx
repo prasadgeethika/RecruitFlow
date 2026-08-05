@@ -1,12 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 
 export default function CreateJobPage() {
     const { userId } = useAuth();
-    const navigate = useNavigate();
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -14,17 +12,25 @@ export default function CreateJobPage() {
     const [location, setLocation] = useState("");
     const [experienceRequired, setExperienceRequired] = useState(0);
 
+    const [createdJobId, setCreatedJobId] = useState<number | null>(null);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
+    const resetForm = () => {
+        setTitle("");
+        setDescription("");
+        setSkills("");
+        setLocation("");
+        setExperienceRequired(0);
+    };
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-
         setMessage("");
         setError("");
 
         try {
-            await api.post("/jobs", {
+            const response = await api.post("/jobs", {
                 title,
                 description,
                 skills,
@@ -33,18 +39,25 @@ export default function CreateJobPage() {
                 recruiterId: userId,
             });
 
-            setMessage("Job created successfully.");
+            setCreatedJobId(response.data.id);
+            setMessage(
+                "Job created as a draft. Click \"Publish\" below so candidates can see and apply to it."
+            );
+        } catch (err) {
+            setError(getErrorMessage(err));
+        }
+    };
 
-            setTimeout(() => {
-                navigate("/jobs");
-            }, 1000);
+    const publishJob = async () => {
+        if (createdJobId == null) return;
 
-            setTitle("");
-            setDescription("");
-            setSkills("");
-            setLocation("");
-            setExperienceRequired(0);
+        setError("");
 
+        try {
+            await api.put(`/jobs/${createdJobId}/open`);
+            setMessage("Job published — it's now visible to candidates.");
+            setCreatedJobId(null);
+            resetForm();
         } catch (err) {
             setError(getErrorMessage(err));
         }
@@ -53,55 +66,50 @@ export default function CreateJobPage() {
     return (
         <div className="page">
             <div className="card">
-
                 <Navbar />
-
                 <h2>Create Job</h2>
 
                 <form className="auth-form" onSubmit={handleSubmit}>
-
                     <input
                         placeholder="Job Title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                     />
-
                     <textarea
                         placeholder="Description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
-
                     <input
                         placeholder="Skills (Java, Spring Boot)"
                         value={skills}
                         onChange={(e) => setSkills(e.target.value)}
                     />
-
                     <input
                         placeholder="Location"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                     />
-
                     <input
                         type="number"
                         placeholder="Experience Required"
                         value={experienceRequired}
-                        onChange={(e) =>
-                            setExperienceRequired(Number(e.target.value))
-                        }
+                        onChange={(e) => setExperienceRequired(Number(e.target.value))}
                     />
 
-                    <button type="submit">
+                    <button type="submit" disabled={createdJobId !== null}>
                         Create Job
                     </button>
-
                 </form>
+
+                {createdJobId !== null && (
+                    <button onClick={() => void publishJob()} className="publish-btn">
+                        Publish Job
+                    </button>
+                )}
 
                 {message && <p className="success">{message}</p>}
                 {error && <p className="error">{error}</p>}
-
             </div>
         </div>
     );
