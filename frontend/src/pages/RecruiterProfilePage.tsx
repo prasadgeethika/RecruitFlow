@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
 
 interface RecruiterProfile {
     id?: number;
@@ -88,8 +87,6 @@ export default function RecruiterProfilePage() {
     return (
         <div className="page">
             <div className="card">
-
-                <Navbar />
 
                 <h2>Recruiter Profile</h2>
 

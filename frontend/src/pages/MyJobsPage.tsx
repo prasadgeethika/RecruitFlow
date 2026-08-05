@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
 
 interface Job {
     id: number;
@@ -70,7 +69,6 @@ export default function MyJobsPage() {
     return (
         <div className="page">
             <div className="card">
-                <Navbar />
                 <div className="page-header">
                     <h2>My Job Postings</h2>
                     <button onClick={() => navigate("/create-job")}>+ New Job</button>

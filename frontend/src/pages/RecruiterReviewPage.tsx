@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 
 
@@ -98,8 +97,6 @@ export default function RecruiterReviewPage() {
     return (
         <div className="page">
             <div className="card">
-
-                <Navbar />
 
                 <h2>Review Applications</h2>
 

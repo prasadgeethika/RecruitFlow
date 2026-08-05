@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import api, { getErrorMessage } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
 
 interface Job {
   id: number;
@@ -92,8 +91,6 @@ export default function JobsPage() {
   return (
       <div className="page">
         <div className="card">
-
-          <Navbar />
 
           <h3>Search Jobs</h3>
 

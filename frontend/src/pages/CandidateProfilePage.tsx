@@ -1,5 +1,4 @@
 import { useEffect, useState, type FormEvent } from "react";
-import Navbar from "../components/Navbar";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -117,8 +116,6 @@ export default function CandidateProfilePage() {
         <div className="page">
 
             <div className="card">
-
-                <Navbar />
 
                 <h2>Candidate Profile</h2>
 

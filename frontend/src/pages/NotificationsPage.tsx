@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -75,8 +74,6 @@ export default function NotificationsPage() {
         <div className="page">
 
             <div className="card">
-
-                <Navbar />
 
                 <h2>Notifications</h2>
 

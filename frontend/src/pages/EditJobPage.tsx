@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
-import Navbar from "../components/Navbar";
 
 interface Job {
     title: string;
@@ -30,7 +29,6 @@ export default function EditJobPage() {
         return (
             <div className="page">
                 <div className="card">
-                    <Navbar />
                     <p className="error">
                         No job data was passed in. Go back to "My Jobs" and click Edit from there.
                     </p>
@@ -62,7 +60,6 @@ export default function EditJobPage() {
     return (
         <div className="page">
             <div className="card">
-                <Navbar />
                 <h2>Edit Job (Draft)</h2>
 
                 <form className="auth-form" onSubmit={handleSubmit}>

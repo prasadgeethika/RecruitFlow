@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
 
-    const { role, logout } = useAuth();
+    const { role, email, logout } = useAuth();
 
     const navigate = useNavigate();
 
@@ -14,7 +14,16 @@ export default function Navbar() {
 
     return (
         <nav className="navbar">
-            <h2>RecruitFlow</h2>
+            <div className="navbar-top">
+                <div>
+                    <h2>RecruitFlow</h2>
+                    <p className="user-meta">
+                        Signed in as <strong>{email ?? "Unknown user"}</strong>
+                        {role ? ` · ${role.toLowerCase()}` : ""}
+                    </p>
+                </div>
+            </div>
+
             <div className="nav-links">
                 <Link to="/jobs">Jobs</Link>
                 <Link to="/notifications">Notifications</Link>
@@ -36,8 +45,6 @@ export default function Navbar() {
                         <Link to="/recruiter-profile">My Profile</Link>
                     </>
                 )}
-
-                <button onClick={handleLogout}>Logout</button>
             </div>
         </nav>
     );

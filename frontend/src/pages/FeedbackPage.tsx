@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from "react";
-import Navbar from "../components/Navbar";
 import api, { getErrorMessage } from "../api/axios";
 
 export default function FeedbackPage() {
@@ -48,8 +47,6 @@ export default function FeedbackPage() {
         <div className="page">
 
             <div className="card">
-
-                <Navbar />
 
                 <h2>Interview Feedback</h2>
 

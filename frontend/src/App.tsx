@@ -14,6 +14,7 @@ import CandidateProfilePage from "./pages/CandidateProfilePage";
 import RecruiterProfilePage from "./pages/RecruiterProfilePage";
 import MyJobsPage from "./pages/MyJobsPage";
 import EditJobPage from "./pages/EditJobPage";
+import DashboardLayout from "./components/DashboardLayout";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth();
@@ -30,19 +31,29 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-      <Route path="/jobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-      <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>}/>
-      <Route path="/create-job" element={<ProtectedRoute><CreateJobPage /></ProtectedRoute>}/>
-      <Route path="/review-applications" element={<ProtectedRoute><RecruiterReviewPage /></ProtectedRoute>}/>
-      <Route path="/schedule-interview" element={<ProtectedRoute><InterviewSchedulePage /></ProtectedRoute>}/>
-      <Route path="/feedback" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>}/>
-      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>}/>
-      <Route path="/candidate-profile" element={<ProtectedRoute><CandidateProfilePage /></ProtectedRoute>}/>
-      <Route path="/recruiter-profile" element={<ProtectedRoute><RecruiterProfilePage /></ProtectedRoute>}/>
-      <Route path="/my-jobs" element={<ProtectedRoute><MyJobsPage /></ProtectedRoute>} />
-      <Route path="/edit-job/:id" element={<ProtectedRoute><EditJobPage /></ProtectedRoute>} />
+
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="jobs" element={<JobsPage />} />
+        <Route path="applications" element={<ApplicationsPage />} />
+        <Route path="create-job" element={<CreateJobPage />} />
+        <Route path="review-applications" element={<RecruiterReviewPage />} />
+        <Route path="schedule-interview" element={<InterviewSchedulePage />} />
+        <Route path="feedback" element={<FeedbackPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="candidate-profile" element={<CandidateProfilePage />} />
+        <Route path="recruiter-profile" element={<RecruiterProfilePage />} />
+        <Route path="my-jobs" element={<MyJobsPage />} />
+        <Route path="edit-job/:id" element={<EditJobPage />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/jobs" replace />} />
     </Routes>
   );
 }

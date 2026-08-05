@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
 
 interface Application {
     id: number;
@@ -60,8 +59,6 @@ export default function ApplicationsPage() {
     return (
         <div className="page">
             <div className="card">
-
-                <Navbar />
 
                 <h2>My Applications</h2>
 

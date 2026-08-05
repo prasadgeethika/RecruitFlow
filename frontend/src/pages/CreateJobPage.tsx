@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
 
 export default function CreateJobPage() {
     const { userId } = useAuth();
@@ -66,7 +65,6 @@ export default function CreateJobPage() {
     return (
         <div className="page">
             <div className="card">
-                <Navbar />
                 <h2>Create Job</h2>
 
                 <form className="auth-form" onSubmit={handleSubmit}>

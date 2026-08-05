@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import api, { getErrorMessage } from "../api/axios";
 
 export default function InterviewSchedulePage() {
@@ -35,7 +34,6 @@ export default function InterviewSchedulePage() {
     return (
         <div className="page">
             <div className="card">
-                <Navbar />
                 <h2>Schedule Interview</h2>
                 <form className="auth-form" onSubmit={handleSubmit}>
                     <input
