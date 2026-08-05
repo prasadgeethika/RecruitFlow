@@ -83,7 +83,9 @@ public class JobApplicationService {
             throw new IllegalStateException("Can only schedule interview from SHORTLISTED, current status: " + app.getStatus());
         }
         app.setStatus(Status.INTERVIEW_SCHEDULED);
-        return repo.save(app);
+        JobApplication saved = repo.save(app);
+        notifySafely(app.getCandidateId(), "Your interview has been scheduled.");
+        return saved;
     }
 
     public JobApplication markSelected(Long applicationId) {

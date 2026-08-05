@@ -167,6 +167,7 @@ class JobApplicationServiceTest {
         JobApplication result = service.markInterviewScheduled(1L);
 
         assertEquals(Status.INTERVIEW_SCHEDULED, result.getStatus());
+        verify(notificationClient).createNotification(any());
     }
 
     @Test
