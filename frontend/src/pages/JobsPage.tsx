@@ -37,15 +37,13 @@ export default function JobsPage() {
     setError('');
     setMessage('');
 
-    try {
-      const response = await api.get<Job[]>('/jobs/search', {
-        params: {
-          skill: searchSkill,
-          location: searchLocation,
-          experience: searchExperience,
-        },
-      });
+    const params: Record<string, string> = {};
+    if (searchSkill) params.skill = searchSkill;
+    if (searchLocation) params.location = searchLocation;
+    if (searchExperience) params.experience = searchExperience;
 
+    try {
+      const response = await api.get<Job[]>('/jobs/search', { params });
       setJobs(response.data);
     } catch (err) {
       setError(getErrorMessage(err));

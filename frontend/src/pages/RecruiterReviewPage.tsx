@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
+
 
 interface Job {
     id: number;
@@ -19,6 +21,8 @@ interface Application {
 
 export default function RecruiterReviewPage() {
     const { userId } = useAuth();
+
+    const navigate = useNavigate();
 
     const [jobs, setJobs] = useState<Job[]>([]);
     const [selectedJob, setSelectedJob] = useState<number | null>(null);
@@ -184,11 +188,7 @@ export default function RecruiterReviewPage() {
                                 {app.status === "SHORTLISTED" && (
                                     <button
                                         onClick={() =>
-                                            updateStatus(
-                                                app.id,
-                                                "interview-scheduled",
-                                                "Interview scheduled"
-                                            )
+                                            navigate("/schedule-interview", { state: { applicationId: app.id } })
                                         }
                                     >
                                         Schedule Interview
