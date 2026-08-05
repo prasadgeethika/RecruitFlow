@@ -10,6 +10,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.http.HttpMethod;
 
 import javax.crypto.SecretKey;
 import java.util.List;
@@ -28,6 +29,10 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
+
+        if (request.getMethod() == HttpMethod.OPTIONS) {
+            return chain.filter(exchange);
+        }
 
         if (OPEN_ENDPOINTS.stream().anyMatch(path::startsWith)) {
             return chain.filter(exchange);
