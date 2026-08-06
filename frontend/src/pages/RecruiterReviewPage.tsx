@@ -106,6 +106,7 @@ export default function RecruiterReviewPage() {
                     </p>
                 ) : (
                     <select
+                        className="job-select"
                         value={selectedJob ?? ""}
                         onChange={(e) => setSelectedJob(Number(e.target.value))}
                     >

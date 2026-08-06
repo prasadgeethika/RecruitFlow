@@ -9,7 +9,8 @@ export default function InterviewSchedulePage() {
     const [applicationId, setApplicationId] = useState(
         passedId != null ? String(passedId) : ""
     );
-    const [scheduledAt, setScheduledAt] = useState("");
+    const [scheduledDate, setScheduledDate] = useState("");
+    const [scheduledTime, setScheduledTime] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -18,6 +19,13 @@ export default function InterviewSchedulePage() {
         setMessage("");
         setError("");
 
+        if (!scheduledDate || !scheduledTime) {
+            setError("Please select both a date and a time.");
+            return;
+        }
+
+        const scheduledAt = `${scheduledDate}T${scheduledTime}`;
+
         try {
             await api.post("/interviews/schedule", {
                 applicationId: Number(applicationId),
@@ -25,7 +33,8 @@ export default function InterviewSchedulePage() {
             });
             setMessage("Interview scheduled successfully.");
             setApplicationId("");
-            setScheduledAt("");
+            setScheduledDate("");
+            setScheduledTime("");
         } catch (err) {
             setError(getErrorMessage(err));
         }
@@ -42,11 +51,18 @@ export default function InterviewSchedulePage() {
                         value={applicationId}
                         onChange={(e) => setApplicationId(e.target.value)}
                     />
-                    <input
-                        type="datetime-local"
-                        value={scheduledAt}
-                        onChange={(e) => setScheduledAt(e.target.value)}
-                    />
+                    <div className="datetime-row">
+                        <input
+                            type="date"
+                            value={scheduledDate}
+                            onChange={(e) => setScheduledDate(e.target.value)}
+                        />
+                        <input
+                            type="time"
+                            value={scheduledTime}
+                            onChange={(e) => setScheduledTime(e.target.value)}
+                        />
+                    </div>
                     <button type="submit">Schedule Interview</button>
                 </form>
                 {message && <p className="success">{message}</p>}

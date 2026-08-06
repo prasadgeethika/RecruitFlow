@@ -23,7 +23,7 @@ export default function LoginPage() {
       }
 
       login(token);
-      navigate('/jobs');
+      navigate('/dashboard/jobs');
     } catch (err) {
       setError(getErrorMessage(err));
     }
