@@ -29,13 +29,6 @@ public class JobService {
     public Job edit(Long id, CreateJobRequest req) {
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Job not found"));
-
-        if (job.getStatus() != Job.Status.DRAFT) {
-            throw new IllegalStateException(
-                    "Only draft jobs can be edited. Close the job and create a new one instead."
-            );
-        }
-
         job.setTitle(req.title());
         job.setDescription(req.description());
         job.setSkills(req.skills());

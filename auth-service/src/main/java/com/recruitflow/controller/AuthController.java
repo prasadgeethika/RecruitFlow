@@ -15,21 +15,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        try {
-            authService.register(req);
-            return ResponseEntity.ok().body("Registered successfully");
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<String> register(@RequestBody RegisterRequest req) {
+        authService.register(req);
+        return ResponseEntity.ok("Registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        try {
-            return ResponseEntity.ok(authService.login(req));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(401).body(e.getMessage());
-        }
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
+        return ResponseEntity.ok(authService.login(req));
     }
 }

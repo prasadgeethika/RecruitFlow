@@ -5,6 +5,8 @@ import com.recruitflow.service.JobApplicationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/applications")
 public class JobApplicationController {
@@ -17,81 +19,57 @@ public class JobApplicationController {
     public record ApplyRequest(Long candidateId, Long jobId, String coverLetter) {}
 
     @PostMapping
-    public ResponseEntity<?> apply(@RequestBody ApplyRequest req) {
-        try {
-            return ResponseEntity.ok(service.apply(req.candidateId(), req.jobId(), req.coverLetter()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<JobApplication> apply(@RequestBody ApplyRequest req) {
+        return ResponseEntity.ok(service.apply(req.candidateId(), req.jobId(), req.coverLetter()));
     }
 
     @PutMapping("/{id}/withdraw")
-    public ResponseEntity<?> withdraw(@PathVariable Long id) {
-        return guarded(() -> service.withdraw(id));
+    public ResponseEntity<JobApplication> withdraw(@PathVariable Long id) {
+        return ResponseEntity.ok(service.withdraw(id));
     }
 
     @PutMapping("/{id}/under-review")
-    public ResponseEntity<?> underReview(@PathVariable Long id) {
-        return guarded(() -> service.moveToUnderReview(id));
+    public ResponseEntity<JobApplication> underReview(@PathVariable Long id) {
+        return ResponseEntity.ok(service.moveToUnderReview(id));
     }
 
     @PutMapping("/{id}/shortlist")
-    public ResponseEntity<?> shortlist(@PathVariable Long id) {
-        return guarded(() -> service.shortlist(id));
+    public ResponseEntity<JobApplication> shortlist(@PathVariable Long id) {
+        return ResponseEntity.ok(service.shortlist(id));
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<?> reject(@PathVariable Long id) {
-        return guarded(() -> service.reject(id));
+    public ResponseEntity<JobApplication> reject(@PathVariable Long id) {
+        return ResponseEntity.ok(service.reject(id));
     }
 
     @PutMapping("/{id}/interview-scheduled")
-    public ResponseEntity<?> interviewScheduled(@PathVariable Long id) {
-        return guarded(() -> service.markInterviewScheduled(id));
+    public ResponseEntity<JobApplication> interviewScheduled(@PathVariable Long id) {
+        return ResponseEntity.ok(service.markInterviewScheduled(id));
     }
 
     @PutMapping("/{id}/select")
-    public ResponseEntity<?> select(@PathVariable Long id) {
-        return guarded(() -> service.markSelected(id));
+    public ResponseEntity<JobApplication> select(@PathVariable Long id) {
+        return ResponseEntity.ok(service.markSelected(id));
     }
 
     @PutMapping("/{id}/hire")
-    public ResponseEntity<?> hire(@PathVariable Long id) {
-        return guarded(() -> service.markHired(id));
+    public ResponseEntity<JobApplication> hire(@PathVariable Long id) {
+        return ResponseEntity.ok(service.markHired(id));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(service.getById(id));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<JobApplication> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @GetMapping("/candidate/{candidateId}")
-    public ResponseEntity<?> getApplicationsByCandidate(@PathVariable Long candidateId) {
-        try {
-            return ResponseEntity.ok(service.getApplicationsByCandidate(candidateId));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<List<JobApplication>> getApplicationsByCandidate(@PathVariable Long candidateId) {
+        return ResponseEntity.ok(service.getApplicationsByCandidate(candidateId));
     }
 
     @GetMapping("/job/{jobId}")
-    public ResponseEntity<?> getApplicationsByJob(
-            @PathVariable Long jobId) {
-
-        return ResponseEntity.ok(
-                service.getApplicationsByJob(jobId)
-        );
-    }
-
-    private ResponseEntity<?> guarded(java.util.function.Supplier<JobApplication> action) {
-        try {
-            return ResponseEntity.ok(action.get());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<List<JobApplication>> getApplicationsByJob(@PathVariable Long jobId) {
+        return ResponseEntity.ok(service.getApplicationsByJob(jobId));
     }
 }

@@ -20,21 +20,13 @@ public class InterviewController {
     public record FeedbackRequest(Integer technicalScore, Integer communicationScore, String comments) {}
 
     @PostMapping("/schedule")
-    public ResponseEntity<?> schedule(@RequestBody ScheduleRequest req) {
-        try {
-            return ResponseEntity.ok(service.schedule(req.applicationId(), req.scheduledAt()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Interview> schedule(@RequestBody ScheduleRequest req) {
+        return ResponseEntity.ok(service.schedule(req.applicationId(), req.scheduledAt()));
     }
 
     @PutMapping("/{applicationId}/feedback")
-    public ResponseEntity<?> feedback(@PathVariable Long applicationId, @RequestBody FeedbackRequest req) {
-        try {
-            return ResponseEntity.ok(service.submitFeedback(
-                    applicationId, req.technicalScore(), req.communicationScore(), req.comments()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Interview> feedback(@PathVariable Long applicationId, @RequestBody FeedbackRequest req) {
+        return ResponseEntity.ok(service.submitFeedback(
+                applicationId, req.technicalScore(), req.communicationScore(), req.comments()));
     }
 }

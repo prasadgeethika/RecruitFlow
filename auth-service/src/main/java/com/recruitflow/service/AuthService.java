@@ -1,6 +1,7 @@
 package com.recruitflow.service;
 
 import com.recruitflow.dto.*;
+import com.recruitflow.exception.InvalidCredentialsException;
 import com.recruitflow.model.User;
 import com.recruitflow.repository.UserRepository;
 import com.recruitflow.security.JwtUtil;
@@ -31,9 +32,9 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest req) {
         User user = userRepository.findByEmail(req.email())
-                .orElseThrow(() -> new IllegalStateException("Invalid credentials"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
         if (!encoder.matches(req.password(), user.getPasswordHash())) {
-            throw new IllegalStateException("Invalid credentials");
+            throw new InvalidCredentialsException("Invalid credentials");
         }
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
         return new AuthResponse(token, user.getEmail(), user.getRole().name());
