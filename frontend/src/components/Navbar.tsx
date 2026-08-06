@@ -5,21 +5,21 @@ export default function Navbar() {
     const { role } = useAuth();
 
     const navItems = [
-        { path: '/jobs', label: 'Jobs' },
-        { path: '/notifications', label: 'Notifications' },
+        { path: '/dashboard/jobs', label: 'Jobs' },
+        { path: '/dashboard/notifications', label: 'Notifications' },
     ];
 
     if (role === 'CANDIDATE') {
-        navItems.push({ path: '/applications', label: 'My Applications' });
-        navItems.push({ path: '/candidate-profile', label: 'My Profile' });
+        navItems.push({ path: '/dashboard/applications', label: 'My Applications' });
+        navItems.push({ path: '/dashboard/candidate-profile', label: 'My Profile' });
     }
 
     if (role === 'RECRUITER') {
-        navItems.push({ path: '/create-job', label: 'Create Job' });
-        navItems.push({ path: '/review-applications', label: 'Review Applications' });
-        navItems.push({ path: '/schedule-interview', label: 'Schedule Interview' });
-        navItems.push({ path: '/feedback', label: 'Interview Feedback' });
-        navItems.push({ path: '/recruiter-profile', label: 'My Profile' });
+        navItems.push({ path: '/dashboard/create-job', label: 'Create Job' });
+        navItems.push({ path: '/dashboard/review-applications', label: 'Review Applications' });
+        navItems.push({ path: '/dashboard/schedule-interview', label: 'Schedule Interview' });
+        navItems.push({ path: '/dashboard/feedback', label: 'Interview Feedback' });
+        navItems.push({ path: '/dashboard/recruiter-profile', label: 'My Profile' });
     }
 
     return (

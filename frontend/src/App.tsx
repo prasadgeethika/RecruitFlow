@@ -15,6 +15,7 @@ import RecruiterProfilePage from "./pages/RecruiterProfilePage";
 import MyJobsPage from "./pages/MyJobsPage";
 import EditJobPage from "./pages/EditJobPage";
 import DashboardLayout from "./components/DashboardLayout";
+import LandingPage from './pages/LandingPage';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth();
@@ -23,23 +24,25 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 
 function PublicRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth();
-  return token ? <Navigate to="/jobs" replace /> : <>{children}</>;
+  return token ? <Navigate to="/dashboard/jobs" replace /> : <>{children}</>;
 }
 
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
 
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="/dashboard/jobs" replace />} />
         <Route path="jobs" element={<JobsPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
         <Route path="create-job" element={<CreateJobPage />} />
@@ -53,7 +56,19 @@ function AppRoutes() {
         <Route path="edit-job/:id" element={<EditJobPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/jobs" replace />} />
+      <Route path="/jobs" element={<Navigate to="/dashboard/jobs" replace />} />
+      <Route path="/applications" element={<Navigate to="/dashboard/applications" replace />} />
+      <Route path="/create-job" element={<Navigate to="/dashboard/create-job" replace />} />
+      <Route path="/review-applications" element={<Navigate to="/dashboard/review-applications" replace />} />
+      <Route path="/schedule-interview" element={<Navigate to="/dashboard/schedule-interview" replace />} />
+      <Route path="/feedback" element={<Navigate to="/dashboard/feedback" replace />} />
+      <Route path="/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
+      <Route path="/candidate-profile" element={<Navigate to="/dashboard/candidate-profile" replace />} />
+      <Route path="/recruiter-profile" element={<Navigate to="/dashboard/recruiter-profile" replace />} />
+      <Route path="/my-jobs" element={<Navigate to="/dashboard/my-jobs" replace />} />
+      <Route path="/edit-job/:id" element={<Navigate to="/dashboard/edit-job/:id" replace />} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
