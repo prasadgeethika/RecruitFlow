@@ -8,13 +8,14 @@ import java.util.List;
 
 public interface JobRepository extends JpaRepository<Job, Long> {
 
-    @Query("""
-        SELECT j FROM Job j
-        WHERE j.status = 'OPEN'
-        AND (:skill IS NULL OR LOWER(j.skills) LIKE LOWER(CONCAT('%', :skill, '%')))
-        AND (:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
-        AND (:minExperience IS NULL OR j.experienceRequired <= :minExperience)
-    """)
+    @Query(value = """
+SELECT *
+FROM jobs
+WHERE status = 'OPEN'
+  AND (:skill IS NULL OR LOWER(skills) LIKE LOWER(CONCAT('%', :skill, '%')))
+  AND (:location IS NULL OR LOWER(location) LIKE LOWER(CONCAT('%', :location, '%')))
+  AND (:minExperience IS NULL OR experience_required <= :minExperience)
+""", nativeQuery = true)
     List<Job> search(@Param("skill") String skill,
                      @Param("location") String location,
                      @Param("minExperience") Integer minExperience);
