@@ -65,4 +65,11 @@ public class JobService {
     public List<Job> getJobsByRecruiter(Long recruiterId) {
         return jobRepository.findByRecruiterId(recruiterId);
     }
+
+    // Needed so application-service can look up which recruiter owns a job,
+    // to notify them when a candidate applies.
+    public Job getById(Long id) {
+        return jobRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Job not found"));
+    }
 }

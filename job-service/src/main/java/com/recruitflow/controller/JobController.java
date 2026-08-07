@@ -52,4 +52,9 @@ public class JobController {
                 jobService.getJobsByRecruiter(recruiterId)
         );
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Job> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(jobService.getById(id));
+    }
 }
