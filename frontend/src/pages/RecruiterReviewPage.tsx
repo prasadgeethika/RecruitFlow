@@ -26,6 +26,13 @@ interface CandidateInfo {
     resumeUrl?: string;
 }
 
+interface Interview {
+    technicalScore?: number;
+    communicationScore?: number;
+    comments?: string;
+    scheduledAt?: string;
+}
+
 export default function RecruiterReviewPage() {
     const { userId } = useAuth();
 
@@ -36,6 +43,8 @@ export default function RecruiterReviewPage() {
 
     const [applications, setApplications] = useState<Application[]>([]);
     const [candidates, setCandidates] = useState<Record<number, CandidateInfo>>({});
+
+    const [interviews, setInterviews] = useState<Record<number, Interview>>({});
 
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
@@ -76,6 +85,10 @@ export default function RecruiterReviewPage() {
 
             setApplications(response.data);
             await loadCandidateInfo(response.data);
+
+            setApplications(response.data);
+            await loadCandidateInfo(response.data);
+            await loadInterviewInfo(response.data);
         } catch (err) {
             setError(getErrorMessage(err));
         } finally {
@@ -116,6 +129,39 @@ export default function RecruiterReviewPage() {
             const next = { ...prev };
             for (const [id, info] of results) {
                 next[id] = info;
+            }
+            return next;
+        });
+    };
+
+    // Only applications that have moved past scheduling actually have interview
+// data to show — no point calling the endpoint for APPLIED/UNDER_REVIEW/SHORTLISTED.
+    const FEEDBACK_RELEVANT_STATUSES = ["INTERVIEW_SCHEDULED", "SELECTED", "REJECTED", "HIRED"];
+
+    const loadInterviewInfo = async (apps: Application[]) => {
+        const idsToFetch = apps
+            .filter((a) => FEEDBACK_RELEVANT_STATUSES.includes(a.status))
+            .map((a) => a.id)
+            .filter((id) => !(id in interviews));
+
+        if (idsToFetch.length === 0) return;
+
+        const results = await Promise.all(
+            idsToFetch.map(async (applicationId) => {
+                try {
+                    const res = await api.get<Interview>(`/interviews/${applicationId}`);
+                    return [applicationId, res.data] as const;
+                } catch {
+                    // No interview record yet, or feedback not submitted — skip silently.
+                    return null;
+                }
+            })
+        );
+
+        setInterviews((prev) => {
+            const next = { ...prev };
+            for (const entry of results) {
+                if (entry) next[entry[0]] = entry[1];
             }
             return next;
         });
@@ -209,6 +255,17 @@ export default function RecruiterReviewPage() {
 
                             {app.coverLetter && (
                                 <p><strong>Cover letter:</strong> {app.coverLetter}</p>
+                            )}
+
+                            {interviews[app.id]?.technicalScore != null && (
+                                <div className="feedback-block">
+                                    <p><strong>Interview Feedback</strong></p>
+                                    <p>Technical: {interviews[app.id].technicalScore}/10</p>
+                                    <p>Communication: {interviews[app.id].communicationScore}/10</p>
+                                    {interviews[app.id].comments && (
+                                        <p>"{interviews[app.id].comments}"</p>
+                                    )}
+                                </div>
                             )}
 
                             <p>
