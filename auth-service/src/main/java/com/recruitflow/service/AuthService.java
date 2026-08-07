@@ -39,4 +39,11 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
         return new AuthResponse(token, user.getEmail(), user.getRole().name());
     }
+
+    // Powers cross-service display, e.g. a recruiter seeing which candidate applied.
+    public UserSummary getUserSummary(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+        return new UserSummary(user.getId(), user.getEmail(), user.getRole().name());
+    }
 }

@@ -24,4 +24,11 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
         return ResponseEntity.ok(authService.login(req));
     }
+
+    // Any authenticated user can look up another user's basic (non-sensitive)
+    // info by id — e.g. a recruiter viewing which candidate applied to their job.
+    @GetMapping("/users/{id}")
+    public ResponseEntity<UserSummary> getUser(@PathVariable Long id) {
+        return ResponseEntity.ok(authService.getUserSummary(id));
+    }
 }
