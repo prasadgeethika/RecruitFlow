@@ -267,7 +267,14 @@ export default function RecruiterReviewPage() {
                                 {app.status === "SHORTLISTED" && (
                                     <button
                                         onClick={() =>
-                                            navigate("/schedule-interview", { state: { applicationId: app.id } })
+                                            navigate("/dashboard/schedule-interview", {
+                                                state: {
+                                                    applicationId: app.id,
+                                                    candidateEmail:
+                                                        candidates[app.candidateId]?.email ?? `Candidate #${app.candidateId}`,
+                                                    jobTitle: jobs.find((j) => j.id === app.jobId)?.title ?? "",
+                                                },
+                                            })
                                         }
                                     >
                                         Schedule Interview
