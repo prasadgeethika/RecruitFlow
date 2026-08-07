@@ -1,5 +1,7 @@
 package com.recruitflow.service;
 
+import com.recruitflow.client.JobClient;
+import com.recruitflow.client.JobResponse;
 import com.recruitflow.client.NotificationClient;
 import com.recruitflow.dto.CreateNotificationRequest;
 import com.recruitflow.model.JobApplication;
@@ -17,10 +19,12 @@ public class JobApplicationService {
 
     private final JobApplicationRepository repo;
     private final NotificationClient notificationClient;
+    private final JobClient jobClient;
 
-    public JobApplicationService(JobApplicationRepository repo, NotificationClient notificationClient) {
+    public JobApplicationService(JobApplicationRepository repo, NotificationClient notificationClient, JobClient jobClient) {
         this.repo = repo;
         this.notificationClient = notificationClient;
+        this.jobClient = jobClient;
     }
 
     public JobApplication apply(Long candidateId, Long jobId, String coverLetter) {
@@ -32,7 +36,9 @@ public class JobApplicationService {
         app.setJobId(jobId);
         app.setCoverLetter(coverLetter);
         app.setStatus(Status.APPLIED);
-        return repo.save(app);
+        JobApplication saved = repo.save(app);
+        notifyRecruiterOfApplication(jobId);
+        return saved;
     }
 
     public JobApplication withdraw(Long applicationId) {
@@ -108,6 +114,18 @@ public class JobApplicationService {
 
     private JobApplication getOrThrow(Long id) {
         return repo.findById(id).orElseThrow(() -> new IllegalStateException("Application not found"));
+    }
+
+    // Same fail-safe principle as notifySafely: if job-service is unreachable or
+    // the notification call fails, the candidate's application must still succeed.
+    // This is a courtesy notification, not a critical part of the apply flow.
+    private void notifyRecruiterOfApplication(Long jobId) {
+        try {
+            JobResponse job = jobClient.getById(jobId);
+            notifySafely(job.recruiterId(), "New application received for \"" + job.title() + "\".");
+        } catch (Exception e) {
+            log.warn("Failed to look up job {} to notify recruiter of new application: {}", jobId, e.getMessage());
+        }
     }
 
     // Notification failure must never roll back the status change (per the plan)
