@@ -18,6 +18,14 @@ interface Application {
     appliedAt: string;
 }
 
+interface CandidateInfo {
+    email: string;
+    skills?: string;
+    location?: string;
+    contactNumber?: string;
+    resumeUrl?: string;
+}
+
 export default function RecruiterReviewPage() {
     const { userId } = useAuth();
 
@@ -27,6 +35,7 @@ export default function RecruiterReviewPage() {
     const [selectedJob, setSelectedJob] = useState<number | null>(null);
 
     const [applications, setApplications] = useState<Application[]>([]);
+    const [candidates, setCandidates] = useState<Record<number, CandidateInfo>>({});
 
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
@@ -66,11 +75,50 @@ export default function RecruiterReviewPage() {
             );
 
             setApplications(response.data);
+            await loadCandidateInfo(response.data);
         } catch (err) {
             setError(getErrorMessage(err));
         } finally {
             setLoading(false);
         }
+    };
+
+    // One fetch per unique candidate on this job, not one per application —
+    // several applications can't share a candidate for the same job (duplicates
+    // are blocked server-side), but this still avoids re-fetching anyone already
+    // known from a previous job selection.
+    const loadCandidateInfo = async (apps: Application[]) => {
+        const idsToFetch = [...new Set(apps.map((a) => a.candidateId))]
+            .filter((id) => !(id in candidates));
+
+        if (idsToFetch.length === 0) return;
+
+        const results = await Promise.all(
+            idsToFetch.map(async (candidateId) => {
+                try {
+                    const userRes = await api.get<{ email: string }>(`/auth/users/${candidateId}`);
+                    let profile: Partial<CandidateInfo> = {};
+                    try {
+                        const profileRes = await api.get(`/profiles/candidates/${candidateId}`);
+                        profile = profileRes.data;
+                    } catch {
+                        // Profile is optional — a candidate may not have filled
+                        // theirs out yet. Email alone is still useful to show.
+                    }
+                    return [candidateId, { email: userRes.data.email, ...profile }] as const;
+                } catch {
+                    return [candidateId, { email: `Candidate #${candidateId}` }] as const;
+                }
+            })
+        );
+
+        setCandidates((prev) => {
+            const next = { ...prev };
+            for (const [id, info] of results) {
+                next[id] = info;
+            }
+            return next;
+        });
     };
 
     const updateStatus = async (
@@ -136,11 +184,32 @@ export default function RecruiterReviewPage() {
 
                         <div key={app.id} className="job-card">
 
-                            <h3>Application #{app.id}</h3>
+                            <h3>{candidates[app.candidateId]?.email ?? `Candidate #${app.candidateId}`}</h3>
 
-                            <p>
-                                <strong>Candidate:</strong> {app.candidateId}
-                            </p>
+                            {candidates[app.candidateId]?.skills && (
+                                <p><strong>Skills:</strong> {candidates[app.candidateId].skills}</p>
+                            )}
+
+                            {candidates[app.candidateId]?.location && (
+                                <p><strong>Location:</strong> {candidates[app.candidateId].location}</p>
+                            )}
+
+                            {candidates[app.candidateId]?.contactNumber && (
+                                <p><strong>Contact:</strong> {candidates[app.candidateId].contactNumber}</p>
+                            )}
+
+                            {candidates[app.candidateId]?.resumeUrl && (
+                                <p>
+                                    <strong>Resume:</strong>{" "}
+                                    <a href={candidates[app.candidateId].resumeUrl} target="_blank" rel="noreferrer">
+                                        View resume
+                                    </a>
+                                </p>
+                            )}
+
+                            {app.coverLetter && (
+                                <p><strong>Cover letter:</strong> {app.coverLetter}</p>
+                            )}
 
                             <p>
                                 <strong>Status:</strong> {app.status}
