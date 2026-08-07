@@ -142,6 +142,12 @@ body {
     color: var(--primary-dark);
     padding: 10px 18px;
     font-weight: 600;
+    transition: background .2s ease, color .2s ease;
+  }
+
+  .topbar-logout:hover {
+    background: var(--primary-dark);
+    color: #ffffff;
   }
 
 .dashboard-body {
@@ -614,6 +620,11 @@ button:disabled {
 
 /* ================= JOB CARDS ================= */
 
+.publish-btn {
+  margin-top: 18px;
+  width: fit-content;
+}
+
 .job-list {
   display: grid;
   gap: 24px;
@@ -628,6 +639,21 @@ button:disabled {
   transition: transform .22s ease, box-shadow .22s ease;
   display: grid;
   gap: 18px;
+}
+
+.job-card p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.actions button {
+  min-width: 128px;
 }
 
 .job-card:hover {
@@ -1046,3 +1072,13 @@ button:disabled {
     padding: 10px 18px;
   }
 
+.feedback-block {
+  background: rgba(15, 61, 145, 0.04);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin: 4px 0;
+}
+
+.feedback-block p {
+  margin: 4px 0;
+}

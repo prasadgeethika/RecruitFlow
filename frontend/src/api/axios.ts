@@ -16,6 +16,11 @@ api.interceptors.request.use((config) => {
 
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+    if (status === 401) {
+      return 'Invalid credentials';
+    }
+
     const data = error.response?.data;
 
     if (typeof data === 'string') {
