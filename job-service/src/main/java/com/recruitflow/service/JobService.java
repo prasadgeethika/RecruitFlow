@@ -1,17 +1,28 @@
 package com.recruitflow.service;
 
+import com.recruitflow.client.AuthClient;
+import com.recruitflow.client.NotificationClient;
 import com.recruitflow.dto.CreateJobRequest;
+import com.recruitflow.dto.CreateNotificationRequest;
 import com.recruitflow.model.Job;
 import com.recruitflow.repository.JobRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
 public class JobService {
-    private final JobRepository jobRepository;
+    private static final Logger log = LoggerFactory.getLogger(JobService.class);
 
-    public JobService(JobRepository jobRepository) {
+    private final JobRepository jobRepository;
+    private final NotificationClient notificationClient;
+    private final AuthClient authClient;
+
+    public JobService(JobRepository jobRepository, NotificationClient notificationClient, AuthClient authClient) {
         this.jobRepository = jobRepository;
+        this.notificationClient = notificationClient;
+        this.authClient = authClient;
     }
 
     public Job create(CreateJobRequest req) {
@@ -66,6 +77,13 @@ public class JobService {
         return jobRepository.findByRecruiterId(recruiterId);
     }
 
+    // Needed so application-service can look up which recruiter owns a job,
+    // to notify them when a candidate applies.
+    public Job getById(Long id) {
+        return jobRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Job not found"));
+    }
+
     // Admin-only: every job regardless of status or recruiter. /search only
     // ever returns OPEN jobs, which hides DRAFT/CLOSED postings admins need
     // to moderate.
@@ -73,10 +91,31 @@ public class JobService {
         return jobRepository.findAll();
     }
 
-    // Needed so application-service can look up which recruiter owns a job,
-    // to notify them when a candidate applies.
-    public Job getById(Long id) {
-        return jobRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Job not found"));
+    // Admin-only: same state transition as close(), but distinguished so we
+    // only fire the "force-closed" admin notification here, not on every
+    // ordinary recruiter-initiated close.
+    public Job forceCloseByAdmin(Long id) {
+        Job job = close(id);
+        notifyAdminsSafely("Job force-closed: \"" + job.getTitle() + "\"");
+        return job;
+    }
+
+    // Notification failure must never block the status change itself.
+    private void notifyAdminsSafely(String message) {
+        List<Long> adminIds;
+        try {
+            adminIds = authClient.getAdminIds();
+        } catch (Exception e) {
+            log.warn("Failed to fetch admin ids: {}", e.getMessage());
+            return;
+        }
+
+        for (Long adminId : adminIds) {
+            try {
+                notificationClient.createNotification(new CreateNotificationRequest(adminId, message));
+            } catch (Exception e) {
+                log.warn("Failed to notify admin {}: {}", adminId, e.getMessage());
+            }
+        }
     }
 }

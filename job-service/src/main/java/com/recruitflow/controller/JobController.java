@@ -69,6 +69,6 @@ public class JobController {
     // needing to coordinate with the owning recruiter first.
     @PutMapping("/admin/{id}/force-close")
     public ResponseEntity<Job> forceClose(@PathVariable Long id) {
-        return ResponseEntity.ok(jobService.close(id));
+        return ResponseEntity.ok(jobService.forceCloseByAdmin(id));
     }
 }
