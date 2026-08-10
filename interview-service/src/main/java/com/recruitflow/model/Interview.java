@@ -24,6 +24,11 @@ public class Interview {
 
     // getters/setters
     public Long getId() { return id; }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Long getApplicationId() { return applicationId; }
     public void setApplicationId(Long applicationId) { this.applicationId = applicationId; }
     public LocalDateTime getScheduledAt() { return scheduledAt; }

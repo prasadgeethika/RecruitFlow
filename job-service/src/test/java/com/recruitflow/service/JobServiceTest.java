@@ -1,5 +1,6 @@
 package com.recruitflow.service;
 
+import com.recruitflow.dto.CreateJobRequest;
 import com.recruitflow.model.Job;
 import com.recruitflow.repository.JobRepository;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,59 +24,185 @@ class JobServiceTest {
     @InjectMocks
     private JobService jobService;
 
-    @Test
-    void testSearchWithSingleFilter() {
-
-        Job job = new Job();
-        job.setTitle("Java Developer");
-        job.setSkills("java,spring");
-
-        when(jobRepository.search("java", null, null))
-                .thenReturn(List.of(job));
-
-        List<Job> result = jobService.search("java", null, null);
-
-        assertEquals(1, result.size());
-        assertEquals("Java Developer", result.get(0).getTitle());
-
-        verify(jobRepository).search("java", null, null);
+    private CreateJobRequest request() {
+        return new CreateJobRequest(
+                "Java Developer",
+                "Backend Java developer",
+                "Java, Spring Boot, PostgreSQL",
+                "Hyderabad",
+                2,
+                10L
+        );
     }
 
     @Test
-    void testSearchWithMultipleFilters() {
+    void create_shouldCreateDraftJob() {
 
-        Job job = new Job();
-        job.setTitle("Senior Java Developer");
-        job.setSkills("java,spring");
-        job.setLocation("Hyderabad");
-        job.setExperienceRequired(5);
+        CreateJobRequest request = request();
 
-        when(jobRepository.search("java", "Hyderabad", 5))
-                .thenReturn(List.of(job));
+        Job savedJob = new Job();
+        savedJob.setId(1L);
+        savedJob.setStatus(Job.Status.DRAFT);
 
-        List<Job> result =
-                jobService.search("java", "Hyderabad", 5);
+        when(jobRepository.save(any(Job.class)))
+                .thenReturn(savedJob);
 
-        assertEquals(1, result.size());
-        assertEquals("Hyderabad", result.get(0).getLocation());
-        assertEquals(5, result.get(0).getExperienceRequired());
+        Job result = jobService.create(request);
 
-        verify(jobRepository)
-                .search("java", "Hyderabad", 5);
+        assertNotNull(result);
+        assertEquals(Job.Status.DRAFT, result.getStatus());
+
+        verify(jobRepository).save(any(Job.class));
     }
 
     @Test
-    void testSearchWithNoMatch() {
+    void edit_shouldUpdateDraftJob() {
 
-        when(jobRepository.search("python", "Delhi", 10))
-                .thenReturn(List.of());
+        Job existingJob = new Job();
+        existingJob.setId(1L);
+        existingJob.setStatus(Job.Status.DRAFT);
+
+        when(jobRepository.findById(1L))
+                .thenReturn(Optional.of(existingJob));
+
+        when(jobRepository.save(existingJob))
+                .thenReturn(existingJob);
+
+        Job result = jobService.edit(1L, request());
+
+        assertEquals("Java Developer", result.getTitle());
+        assertEquals(Job.Status.DRAFT, result.getStatus());
+
+        verify(jobRepository).save(existingJob);
+    }
+
+    @Test
+    void edit_shouldRejectOpenJob() {
+
+        Job existingJob = new Job();
+        existingJob.setId(1L);
+        existingJob.setStatus(Job.Status.OPEN);
+
+        when(jobRepository.findById(1L))
+                .thenReturn(Optional.of(existingJob));
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> jobService.edit(1L, request())
+        );
+
+        verify(jobRepository, never()).save(any(Job.class));
+    }
+
+    @Test
+    void edit_shouldThrowException_whenJobDoesNotExist() {
+
+        when(jobRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> jobService.edit(999L, request())
+        );
+    }
+
+    @Test
+    void open_shouldChangeStatusToOpen() {
+
+        Job job = new Job();
+        job.setId(1L);
+        job.setStatus(Job.Status.DRAFT);
+
+        when(jobRepository.findById(1L))
+                .thenReturn(Optional.of(job));
+
+        when(jobRepository.save(job))
+                .thenReturn(job);
+
+        Job result = jobService.open(1L);
+
+        assertEquals(Job.Status.OPEN, result.getStatus());
+
+        verify(jobRepository).save(job);
+    }
+
+    @Test
+    void close_shouldChangeStatusToClosed() {
+
+        Job job = new Job();
+        job.setId(1L);
+        job.setStatus(Job.Status.OPEN);
+
+        when(jobRepository.findById(1L))
+                .thenReturn(Optional.of(job));
+
+        when(jobRepository.save(job))
+                .thenReturn(job);
+
+        Job result = jobService.close(1L);
+
+        assertEquals(Job.Status.CLOSED, result.getStatus());
+
+        verify(jobRepository).save(job);
+    }
+
+    @Test
+    void search_shouldReturnMatchingJobs() {
+
+        List<Job> jobs = List.of(new Job());
+
+        when(jobRepository.search("Java", "Hyderabad", 2))
+                .thenReturn(jobs);
 
         List<Job> result =
-                jobService.search("python", "Delhi", 10);
+                jobService.search("Java", "Hyderabad", 2);
 
-        assertTrue(result.isEmpty());
+        assertEquals(1, result.size());
 
         verify(jobRepository)
-                .search("python", "Delhi", 10);
+                .search("Java", "Hyderabad", 2);
+    }
+
+    @Test
+    void getJobsByRecruiter_shouldReturnRecruiterJobs() {
+
+        List<Job> jobs = List.of(new Job(), new Job());
+
+        when(jobRepository.findByRecruiterId(10L))
+                .thenReturn(jobs);
+
+        List<Job> result =
+                jobService.getJobsByRecruiter(10L);
+
+        assertEquals(2, result.size());
+
+        verify(jobRepository)
+                .findByRecruiterId(10L);
+    }
+
+    @Test
+    void getById_shouldReturnJob_whenExists() {
+
+        Job job = new Job();
+        job.setId(1L);
+
+        when(jobRepository.findById(1L))
+                .thenReturn(Optional.of(job));
+
+        Job result = jobService.getById(1L);
+
+        assertEquals(1L, result.getId());
+    }
+
+    @Test
+    void getById_shouldThrowException_whenJobDoesNotExist() {
+
+        when(jobRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> jobService.getById(999L)
+        );
     }
 }
