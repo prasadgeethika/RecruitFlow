@@ -14,6 +14,22 @@ interface Job {
   status: string;
 }
 
+const SkillIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </svg>
+);
+const LocationIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+    </svg>
+);
+const ExperienceIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+);
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [skill, setSkill] = useState('');
@@ -107,6 +123,8 @@ export default function JobsPage() {
     }
   };
 
+  const hasActiveFilters = Boolean(skill || location || experience);
+
   const clearFilters = async () => {
     setSkill('');
     setLocation('');
@@ -125,9 +143,9 @@ export default function JobsPage() {
     try {
       await api.put(`/jobs/${job.id}/${action}`);
       setMessage(
-        action === 'open'
-          ? `"${job.title}" is now open to candidates.`
-          : `"${job.title}" has been closed.`
+          action === 'open'
+              ? `"${job.title}" is now open to candidates.`
+              : `"${job.title}" has been closed.`
       );
       await search();
     } catch (err) {
@@ -141,43 +159,64 @@ export default function JobsPage() {
       <div className="page">
         <div className="card">
 
-          <h3>Search Jobs</h3>
+          <div className="page-header">
+            <div>
+              <h3>Search Jobs</h3>
+              <p className="job-subtitle" style={{ margin: 0 }}>
+                {loading ? 'Searching…' : `${jobs.length} job${jobs.length === 1 ? '' : 's'} found`}
+              </p>
+            </div>
+          </div>
 
-          <div className="filters">
-            <input
-                placeholder="Skill"
-                value={skill}
-                onChange={(e) => setSkill(e.target.value)}
-            />
+          <div className="job-search-bar">
+            <div className="job-search-field">
+              <SkillIcon />
+              <input
+                  placeholder="Skill, e.g. Java, React"
+                  value={skill}
+                  onChange={(e) => setSkill(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && void search()}
+              />
+            </div>
 
-            <input
-                placeholder="Location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-            />
+            <span className="job-search-divider" />
 
-            <input
-                placeholder="Experience"
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-            />
+            <div className="job-search-field">
+              <LocationIcon />
+              <input
+                  placeholder="Location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && void search()}
+              />
+            </div>
+
+            <span className="job-search-divider" />
+
+            <div className="job-search-field">
+              <ExperienceIcon />
+              <input
+                  placeholder="Min. experience (years)"
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && void search()}
+              />
+            </div>
 
             <button
+                className="job-search-submit"
                 disabled={loading}
                 onClick={() => void search()}
             >
               {loading ? 'Searching...' : 'Search'}
             </button>
-
-            <button
-                disabled={loading}
-                onClick={() => void clearFilters()}
-            >
-              Clear
-            </button>
           </div>
 
-          {loading && <p>Loading jobs...</p>}
+          {hasActiveFilters && (
+              <button type="button" className="link-clear" onClick={() => void clearFilters()}>
+                Clear filters
+              </button>
+          )}
 
           {error && (
               <p className="error">
@@ -192,82 +231,85 @@ export default function JobsPage() {
           )}
 
           {!loading && jobs.length === 0 && (
-              <p style={{ textAlign: 'center' }}>
+              <div className="empty-state">
                 No jobs found matching your search.
-              </p>
+              </div>
           )}
 
           <div className="job-list">
 
             {jobs.map((job) => {
               const alreadyApplied = appliedJobIds.includes(job.id);
-              const statusClass = job.status?.toLowerCase() === 'open'
-                ? 'status-open'
-                : job.status?.toLowerCase() === 'closed'
-                  ? 'status-closed'
-                  : 'status-draft';
+              const statusKey = job.status?.toLowerCase() === 'open'
+                  ? 'open'
+                  : job.status?.toLowerCase() === 'closed'
+                      ? 'closed'
+                      : 'draft';
 
               return (
-                <div key={job.id} className="job-card">
-                  <div className="job-card-header">
-                    <div>
-                      <h3>{job.title}</h3>
-                      <div className="job-meta-row">
-                        <span>{job.location} • {job.experienceRequired}+ Years</span>
-                        <span className="job-type">Full-time</span>
+                  <div key={job.id} className="job-card" data-status={statusKey}>
+                    <div className="job-card-header">
+                      <div>
+                        <h3>{job.title}</h3>
+                        <div className="job-meta-row">
+                          <span>{job.location} • {job.experienceRequired}+ Years</span>
+                          <span className="job-type">Full-time</span>
+                        </div>
+                      </div>
+                      <span className={`status-pill status-pill--${statusKey}`}>
+                      <span className="status-dot" />
+                        {job.status}
+                    </span>
+                    </div>
+
+                    <p className="job-description">{job.description}</p>
+
+                    <div className="skill-row">
+                      {job.skills.split(',').map((skillItem) => (
+                          <span key={skillItem.trim()} className="skill-chip">{skillItem.trim()}</span>
+                      ))}
+                    </div>
+
+                    <div className="job-card-footer">
+                      <span className="job-posted">Posted recently</span>
+                      <div className="action-group">
+                        {role === 'CANDIDATE' && (
+                            <button
+                                disabled={alreadyApplied || applyingId === job.id}
+                                onClick={() => void apply(job)}
+                            >
+                              {alreadyApplied
+                                  ? 'Applied'
+                                  : applyingId === job.id
+                                      ? 'Applying...'
+                                      : 'Apply'}
+                            </button>
+                        )}
+                        {role === 'RECRUITER' && job.recruiterId === userId && (
+                            <>
+                              <button
+                                  type="button"
+                                  className="secondary"
+                                  onClick={() => navigate(`/edit-job/${job.id}`, { state: job })}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                  type="button"
+                                  disabled={busyJobId === job.id}
+                                  onClick={() => void toggleJobStatus(job)}
+                              >
+                                {busyJobId === job.id
+                                    ? 'Updating...'
+                                    : job.status === 'OPEN'
+                                        ? 'Close'
+                                        : 'Publish'}
+                              </button>
+                            </>
+                        )}
                       </div>
                     </div>
-                    <span className={`status ${statusClass}`}>{job.status}</span>
                   </div>
-
-                  <p className="job-description">{job.description}</p>
-
-                  <div className="skill-row">
-                    {job.skills.split(',').map((skillItem) => (
-                      <span key={skillItem.trim()} className="skill-chip">{skillItem.trim()}</span>
-                    ))}
-                  </div>
-
-                  <div className="job-card-footer">
-                    <span className="job-posted">Posted recently</span>
-                    <div className="action-group">
-                      {role === 'CANDIDATE' && (
-                        <button
-                          disabled={alreadyApplied || applyingId === job.id}
-                          onClick={() => void apply(job)}
-                        >
-                          {alreadyApplied
-                            ? 'Applied'
-                            : applyingId === job.id
-                              ? 'Applying...'
-                              : 'Apply'}
-                        </button>
-                      )}
-                      {role === 'RECRUITER' && job.recruiterId === userId && (
-                        <>
-                          <button
-                            type="button"
-                            className="secondary"
-                            onClick={() => navigate(`/edit-job/${job.id}`, { state: job })}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            disabled={busyJobId === job.id}
-                            onClick={() => void toggleJobStatus(job)}
-                          >
-                            {busyJobId === job.id
-                              ? 'Updating...'
-                              : job.status === 'OPEN'
-                                ? 'Close'
-                                : 'Publish'}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
               );
             })}
 
