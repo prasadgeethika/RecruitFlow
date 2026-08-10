@@ -18,6 +18,7 @@ const icons: Record<string, ReactNode> = {
     review: icon(<><path d="M9 11l2 2 4-4" /><rect x="3" y="4" width="18" height="16" rx="2" /></>),
     interview: icon(<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></>),
     feedback: icon(<><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-4-1L3 20l1-4.5A8.38 8.38 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5Z" /></>),
+    admin: icon(<><path d="M12 3 4 6.5v5c0 4.6 3.2 8.6 8 9.5 4.8-.9 8-4.9 8-9.5v-5L12 3Z" /><path d="M9.5 12.2l1.8 1.8 3.2-3.6" /></>),
 };
 
 export default function Navbar() {
@@ -41,12 +42,22 @@ export default function Navbar() {
         navItems.push({ path: '/dashboard/recruiter-profile', label: 'My Profile', icon: icons.profile });
     }
 
+    if (role === 'ADMIN') {
+        navItems.push({ path: '/dashboard/admin', label: 'Admin', icon: icons.admin });
+    }
+
     return (
         <nav className="navbar">
             <div className="navbar-top">
                 <div>
                     <p className="sidebar-logo">RecruitFlow</p>
-                    <p className="sidebar-role">{role === 'RECRUITER' ? 'Recruiter' : 'Candidate'}</p>
+                    <p className="sidebar-role">
+                        {role === 'ADMIN'
+                            ? 'Admin'
+                            : role === 'RECRUITER'
+                                ? 'Recruiter'
+                                : 'Candidate'}
+                    </p>
                 </div>
             </div>
 

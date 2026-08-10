@@ -1,5 +1,6 @@
 package com.recruitflow.filter;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -43,11 +44,23 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange);
         }
 
+        Claims claims;
         try {
-            Jwts.parserBuilder().setSigningKey(key).build()
-                    .parseClaimsJws(authHeader.substring(7));
+            claims = Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(authHeader.substring(7)).getBody();
         } catch (Exception e) {
             return unauthorized(exchange);
+        }
+
+        // Any path containing an /admin/ segment (e.g. /api/auth/admin/users,
+        // /api/jobs/admin/all) requires the ADMIN role, regardless of which
+        // downstream service owns it. Checked here so a non-admin token can
+        // never reach an admin endpoint, even if a service forgets to check.
+        if (path.contains("/admin/")) {
+            String role = claims.get("role", String.class);
+            if (!"ADMIN".equals(role)) {
+                return forbidden(exchange);
+            }
         }
 
         return chain.filter(exchange);
@@ -55,6 +68,11 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
         return exchange.getResponse().setComplete();
     }
 

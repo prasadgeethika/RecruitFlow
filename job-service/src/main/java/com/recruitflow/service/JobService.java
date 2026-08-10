@@ -66,6 +66,13 @@ public class JobService {
         return jobRepository.findByRecruiterId(recruiterId);
     }
 
+    // Admin-only: every job regardless of status or recruiter. /search only
+    // ever returns OPEN jobs, which hides DRAFT/CLOSED postings admins need
+    // to moderate.
+    public List<Job> getAllForAdmin() {
+        return jobRepository.findAll();
+    }
+
     // Needed so application-service can look up which recruiter owns a job,
     // to notify them when a candidate applies.
     public Job getById(Long id) {

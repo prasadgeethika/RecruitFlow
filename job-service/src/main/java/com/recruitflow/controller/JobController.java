@@ -57,4 +57,18 @@ public class JobController {
     public ResponseEntity<Job> getById(@PathVariable Long id) {
         return ResponseEntity.ok(jobService.getById(id));
     }
+
+    // Admin-only (enforced at the gateway): every job platform-wide,
+    // regardless of status or which recruiter owns it.
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<Job>> getAllForAdmin() {
+        return ResponseEntity.ok(jobService.getAllForAdmin());
+    }
+
+    // Admin-only: force-close any job, e.g. for a policy violation, without
+    // needing to coordinate with the owning recruiter first.
+    @PutMapping("/admin/{id}/force-close")
+    public ResponseEntity<Job> forceClose(@PathVariable Long id) {
+        return ResponseEntity.ok(jobService.close(id));
+    }
 }

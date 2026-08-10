@@ -36,6 +36,9 @@ public class AuthService {
         if (!encoder.matches(req.password(), user.getPasswordHash())) {
             throw new InvalidCredentialsException("Invalid credentials");
         }
+        if (!user.isEnabled()) {
+            throw new InvalidCredentialsException("This account has been suspended. Contact an administrator.");
+        }
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
         return new AuthResponse(token, user.getEmail(), user.getRole().name());
     }
@@ -45,5 +48,21 @@ public class AuthService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("User not found"));
         return new UserSummary(user.getId(), user.getEmail(), user.getRole().name());
+    }
+
+    // ---- Admin-only operations ----
+
+    public java.util.List<AdminUserView> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(u -> new AdminUserView(u.getId(), u.getEmail(), u.getRole().name(), u.isEnabled()))
+                .toList();
+    }
+
+    public AdminUserView setUserEnabled(Long id, boolean enabled) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+        user.setEnabled(enabled);
+        userRepository.save(user);
+        return new AdminUserView(user.getId(), user.getEmail(), user.getRole().name(), user.isEnabled());
     }
 }
