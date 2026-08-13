@@ -26,6 +26,8 @@ interface PassedState {
     jobTitle?: string;
 }
 
+const today = () => new Date().toISOString().slice(0, 10);
+
 export default function InterviewSchedulePage() {
     const { userId } = useAuth();
     const location = useLocation();
@@ -45,6 +47,7 @@ export default function InterviewSchedulePage() {
 
     const [scheduledDate, setScheduledDate] = useState("");
     const [scheduledTime, setScheduledTime] = useState("");
+    const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -114,6 +117,13 @@ export default function InterviewSchedulePage() {
 
         const scheduledAt = `${scheduledDate}T${scheduledTime}`;
 
+        if (new Date(scheduledAt).getTime() < Date.now()) {
+            setError("Interview date and time must be in the future.");
+            return;
+        }
+
+        setSubmitting(true);
+
         try {
             await api.post("/interviews/schedule", {
                 applicationId,
@@ -125,6 +135,8 @@ export default function InterviewSchedulePage() {
             setScheduledTime("");
         } catch (err) {
             setError(getErrorMessage(err));
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -149,41 +161,60 @@ export default function InterviewSchedulePage() {
                         loadingOptions ? (
                             <p>Loading shortlisted candidates...</p>
                         ) : options.length === 0 ? (
-                            <p className="empty-state">
-                                No shortlisted candidates right now — shortlist someone from
-                                Review Applications first.
-                            </p>
+                            <div className="empty-state">
+                                <p className="empty-state-title">No shortlisted candidates yet</p>
+                                <p className="empty-state-hint">
+                                    Shortlist someone from Review Applications first, then come back here.
+                                </p>
+                            </div>
                         ) : (
-                            <select
-                                className="job-select"
-                                value={applicationId ?? ""}
-                                onChange={(e) => setApplicationId(Number(e.target.value))}
-                            >
-                                <option value="" disabled>Select a candidate...</option>
-                                {options.map((opt) => (
-                                    <option key={opt.applicationId} value={opt.applicationId}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="field">
+                                <label className="field-label-text" htmlFor="interview-candidate">Candidate</label>
+                                <select
+                                    id="interview-candidate"
+                                    className="job-select"
+                                    value={applicationId ?? ""}
+                                    onChange={(e) => setApplicationId(Number(e.target.value))}
+                                >
+                                    <option value="" disabled>Select a candidate...</option>
+                                    {options.map((opt) => (
+                                        <option key={opt.applicationId} value={opt.applicationId}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="field-hint">Only shortlisted candidates without an interview yet are listed.</p>
+                            </div>
                         )
                     )}
 
                     <div className="datetime-row">
-                        <input
-                            type="date"
-                            value={scheduledDate}
-                            onChange={(e) => setScheduledDate(e.target.value)}
-                        />
-                        <input
-                            type="time"
-                            value={scheduledTime}
-                            onChange={(e) => setScheduledTime(e.target.value)}
-                        />
+                        <div className="field">
+                            <label className="field-label-text" htmlFor="interview-date">Interview Date</label>
+                            <input
+                                id="interview-date"
+                                type="date"
+                                min={today()}
+                                value={scheduledDate}
+                                onChange={(e) => setScheduledDate(e.target.value)}
+                            />
+                            <p className="field-hint">Select the date on which the interview will take place.</p>
+                        </div>
+
+                        <div className="field">
+                            <label className="field-label-text" htmlFor="interview-time">Interview Time</label>
+                            <input
+                                id="interview-time"
+                                type="time"
+                                value={scheduledTime}
+                                onChange={(e) => setScheduledTime(e.target.value)}
+                            />
+                            <p className="field-hint">Select the scheduled interview time.</p>
+                        </div>
                     </div>
 
-                    <button type="submit" disabled={applicationId == null}>
-                        Schedule Interview
+                    <button type="submit" disabled={applicationId == null || submitting}>
+                        {submitting ? "Scheduling..." : "Schedule Interview"}
                     </button>
                 </form>
 

@@ -29,6 +29,7 @@ export default function FeedbackPage() {
     const [technicalScore, setTechnicalScore] = useState(0);
     const [communicationScore, setCommunicationScore] = useState(0);
     const [comments, setComments] = useState("");
+    const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -81,6 +82,9 @@ export default function FeedbackPage() {
         }
     };
 
+    const scoresInRange = technicalScore >= 1 && technicalScore <= 10
+        && communicationScore >= 1 && communicationScore <= 10;
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setMessage("");
@@ -90,6 +94,13 @@ export default function FeedbackPage() {
             setError("Select which interview you're submitting feedback for.");
             return;
         }
+
+        if (!scoresInRange) {
+            setError("Technical and Communication scores must both be between 1 and 10.");
+            return;
+        }
+
+        setSubmitting(true);
 
         try {
             await api.put(`/interviews/${applicationId}/feedback`, {
@@ -109,6 +120,8 @@ export default function FeedbackPage() {
             void loadInterviewOptions();
         } catch (err) {
             setError(getErrorMessage(err));
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -125,56 +138,74 @@ export default function FeedbackPage() {
                     {loadingOptions ? (
                         <p>Loading interviews...</p>
                     ) : options.length === 0 ? (
-                        <p className="empty-state">
-                            No interviews are waiting on feedback right now.
-                        </p>
+                        <div className="empty-state">
+                            <p className="empty-state-title">No interview feedback pending</p>
+                            <p className="empty-state-hint">
+                                Once you schedule an interview, it'll show up here once it's time to submit feedback.
+                            </p>
+                        </div>
                     ) : (
-                        <select
-                            className="job-select"
-                            value={applicationId ?? ""}
-                            onChange={(e) => setApplicationId(Number(e.target.value))}
-                        >
-                            <option value="" disabled>Select an interview...</option>
-                            {options.map((opt) => (
-                                <option key={opt.applicationId} value={opt.applicationId}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="field">
+                            <label className="field-label-text" htmlFor="feedback-interview">Interview</label>
+                            <select
+                                id="feedback-interview"
+                                className="job-select"
+                                value={applicationId ?? ""}
+                                onChange={(e) => setApplicationId(Number(e.target.value))}
+                            >
+                                <option value="" disabled>Select an interview...</option>
+                                {options.map((opt) => (
+                                    <option key={opt.applicationId} value={opt.applicationId}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     )}
 
-                    <label className="field-label">
-                        Technical Score
+                    <div className="field">
+                        <label className="field-label-text" htmlFor="feedback-technical">
+                            Technical Score <span className="field-required">*</span>
+                        </label>
                         <input
+                            id="feedback-technical"
                             type="number"
-                            placeholder="Enter technical score (1-10)"
                             value={technicalScore}
                             onChange={(e) => setTechnicalScore(Number(e.target.value))}
                             min={1}
                             max={10}
                         />
-                    </label>
+                        <p className="field-hint">Rate the candidate's technical knowledge. Scale: 1–10.</p>
+                    </div>
 
-                    <label className="field-label">
-                        Communication Score
+                    <div className="field">
+                        <label className="field-label-text" htmlFor="feedback-communication">
+                            Communication Score <span className="field-required">*</span>
+                        </label>
                         <input
+                            id="feedback-communication"
                             type="number"
-                            placeholder="Enter communication score (1-10)"
                             value={communicationScore}
                             onChange={(e) => setCommunicationScore(Number(e.target.value))}
                             min={1}
                             max={10}
                         />
-                    </label>
+                        <p className="field-hint">Rate the candidate's communication and clarity. Scale: 1–10.</p>
+                    </div>
 
-                    <textarea
-                        placeholder="Comments"
-                        value={comments}
-                        onChange={(e) => setComments(e.target.value)}
-                    />
+                    <div className="field">
+                        <label className="field-label-text" htmlFor="feedback-comments">Comments</label>
+                        <textarea
+                            id="feedback-comments"
+                            placeholder="Additional observations about the candidate's performance"
+                            value={comments}
+                            onChange={(e) => setComments(e.target.value)}
+                        />
+                        <p className="field-hint">Optional, but recruiters will see this before making a decision.</p>
+                    </div>
 
-                    <button type="submit" disabled={applicationId == null}>
-                        Submit Feedback
+                    <button type="submit" disabled={applicationId == null || submitting}>
+                        {submitting ? "Submitting..." : "Submit Feedback"}
                     </button>
                 </form>
 

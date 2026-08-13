@@ -29,4 +29,11 @@ public class InterviewController {
         return ResponseEntity.ok(service.submitFeedback(
                 applicationId, req.technicalScore(), req.communicationScore(), req.comments()));
     }
+
+    // Used by RecruiterReviewPage to show interview details + feedback
+    // before a recruiter selects/rejects a candidate.
+    @GetMapping("/{applicationId}")
+    public ResponseEntity<Interview> getByApplication(@PathVariable Long applicationId) {
+        return ResponseEntity.ok(service.getByApplicationId(applicationId));
+    }
 }

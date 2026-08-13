@@ -57,4 +57,13 @@ public class InterviewService {
         interview.setComments(comments);
         return repo.save(interview);
     }
+
+    // Lets a recruiter pull up interview details + feedback for a given
+    // application before deciding to Select/Reject. Returns whatever exists
+    // yet — scores/comments may still be null if feedback hasn't been
+    // submitted, so the frontend can render "scheduled, awaiting feedback".
+    public Interview getByApplicationId(Long applicationId) {
+        return repo.findByApplicationId(applicationId)
+                .orElseThrow(() -> new IllegalStateException("No interview found for this application"));
+    }
 }
