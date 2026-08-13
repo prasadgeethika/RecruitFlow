@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-
+import { statusLabel, statusPillClass } from "../utils/status";
 
 interface Job {
     id: number;
@@ -47,11 +47,12 @@ export default function RecruiterReviewPage() {
     const [interviews, setInterviews] = useState<Record<number, Interview>>({});
 
     const [loading, setLoading] = useState(false);
+    const [busyId, setBusyId] = useState<number | null>(null);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
-        loadJobs();
+        void loadJobs();
     }, []);
 
     const loadJobs = async () => {
@@ -82,9 +83,6 @@ export default function RecruiterReviewPage() {
             const response = await api.get<Application[]>(
                 `/applications/job/${jobId}`
             );
-
-            setApplications(response.data);
-            await loadCandidateInfo(response.data);
 
             setApplications(response.data);
             await loadCandidateInfo(response.data);
@@ -135,7 +133,7 @@ export default function RecruiterReviewPage() {
     };
 
     // Only applications that have moved past scheduling actually have interview
-// data to show — no point calling the endpoint for APPLIED/UNDER_REVIEW/SHORTLISTED.
+    // data to show — no point calling the endpoint for APPLIED/UNDER_REVIEW/SHORTLISTED.
     const FEEDBACK_RELEVANT_STATUSES = ["INTERVIEW_SCHEDULED", "SELECTED", "REJECTED", "HIRED"];
 
     const loadInterviewInfo = async (apps: Application[]) => {
@@ -174,6 +172,7 @@ export default function RecruiterReviewPage() {
     ) => {
         setError("");
         setMessage("");
+        setBusyId(applicationId);
 
         try {
             await api.put(`/applications/${applicationId}/${action}`);
@@ -185,6 +184,8 @@ export default function RecruiterReviewPage() {
             }
         } catch (err) {
             setError(getErrorMessage(err));
+        } finally {
+            setBusyId(null);
         }
     };
 
@@ -195,9 +196,12 @@ export default function RecruiterReviewPage() {
                 <h2>Review Applications</h2>
 
                 {jobs.length === 0 ? (
-                    <p className="empty-state">
-                        You have no jobs yet. Create a job first and applications will appear here.
-                    </p>
+                    <div className="empty-state">
+                        <p className="empty-state-title">No jobs yet</p>
+                        <p className="empty-state-hint">
+                            Create a job first and applications will appear here.
+                        </p>
+                    </div>
                 ) : (
                     <select
                         className="job-select"
@@ -219,158 +223,187 @@ export default function RecruiterReviewPage() {
                 {error && <p className="error">{error}</p>}
 
                 {jobs.length > 0 && applications.length === 0 && !loading && (
-                    <p className="empty-state">
-                        No applications found for this job yet.
-                    </p>
+                    <div className="empty-state">
+                        <p className="empty-state-title">No applications yet</p>
+                        <p className="empty-state-hint">
+                            Once candidates apply to this job, they'll show up here for review.
+                        </p>
+                    </div>
                 )}
 
                 <div className="job-list">
 
-                    {applications.map(app => (
+                    {applications.map(app => {
+                        const interview = interviews[app.id];
+                        const hasFeedback = interview?.technicalScore != null;
+                        const isAwaitingFeedback = app.status === "INTERVIEW_SCHEDULED" && interview && !hasFeedback;
 
-                        <div key={app.id} className="job-card">
+                        return (
+                            <div key={app.id} className="job-card">
 
-                            <h3>{candidates[app.candidateId]?.email ?? `Candidate #${app.candidateId}`}</h3>
-
-                            {candidates[app.candidateId]?.skills && (
-                                <p><strong>Skills:</strong> {candidates[app.candidateId].skills}</p>
-                            )}
-
-                            {candidates[app.candidateId]?.location && (
-                                <p><strong>Location:</strong> {candidates[app.candidateId].location}</p>
-                            )}
-
-                            {candidates[app.candidateId]?.contactNumber && (
-                                <p><strong>Contact:</strong> {candidates[app.candidateId].contactNumber}</p>
-                            )}
-
-                            {candidates[app.candidateId]?.resumeUrl && (
-                                <p>
-                                    <strong>Resume:</strong>{" "}
-                                    <a href={candidates[app.candidateId].resumeUrl} target="_blank" rel="noreferrer">
-                                        View resume
-                                    </a>
-                                </p>
-                            )}
-
-                            {app.coverLetter && (
-                                <p><strong>Cover letter:</strong> {app.coverLetter}</p>
-                            )}
-
-                            {interviews[app.id]?.technicalScore != null && (
-                                <div className="feedback-block">
-                                    <p><strong>Interview Feedback</strong></p>
-                                    <p>Technical: {interviews[app.id].technicalScore}/10</p>
-                                    <p>Communication: {interviews[app.id].communicationScore}/10</p>
-                                    {interviews[app.id].comments && (
-                                        <p>"{interviews[app.id].comments}"</p>
-                                    )}
+                                <div className="job-card-header">
+                                    <h3>{candidates[app.candidateId]?.email ?? `Candidate #${app.candidateId}`}</h3>
+                                    <span className={statusPillClass(app.status)}>
+                                    <span className="status-dot" />
+                                        {statusLabel(app.status)}
+                                </span>
                                 </div>
-                            )}
 
-                            <p>
-                                <strong>Status:</strong> {app.status}
-                            </p>
-
-                            <p>
-                                <strong>Applied:</strong>{" "}
-                                {new Date(app.appliedAt).toLocaleString()}
-                            </p>
-
-                            <div className="actions">
-
-                                {app.status === "APPLIED" && (
-                                    <button
-                                        onClick={() =>
-                                            updateStatus(
-                                                app.id,
-                                                "under-review",
-                                                "Moved to Under Review"
-                                            )
-                                        }
-                                    >
-                                        Under Review
-                                    </button>
+                                {candidates[app.candidateId]?.skills && (
+                                    <p><strong>Skills:</strong> {candidates[app.candidateId].skills}</p>
                                 )}
 
-                                {app.status === "UNDER_REVIEW" && (
-                                    <>
+                                {candidates[app.candidateId]?.location && (
+                                    <p><strong>Location:</strong> {candidates[app.candidateId].location}</p>
+                                )}
+
+                                {candidates[app.candidateId]?.contactNumber && (
+                                    <p><strong>Contact:</strong> {candidates[app.candidateId].contactNumber}</p>
+                                )}
+
+                                {candidates[app.candidateId]?.resumeUrl && (
+                                    <p>
+                                        <strong>Resume:</strong>{" "}
+                                        <a href={candidates[app.candidateId].resumeUrl} target="_blank" rel="noreferrer">
+                                            View resume
+                                        </a>
+                                    </p>
+                                )}
+
+                                {app.coverLetter && (
+                                    <p><strong>Cover letter:</strong> {app.coverLetter}</p>
+                                )}
+
+                                {hasFeedback && (
+                                    <div className="feedback-block">
+                                        <p className="feedback-block-title">Interview Feedback</p>
+                                        <div className="feedback-scores">
+                                            <div className="feedback-score">
+                                                <span className="feedback-score-value">{interview.technicalScore}/10</span>
+                                                <span className="feedback-score-label">Technical</span>
+                                            </div>
+                                            <div className="feedback-score">
+                                                <span className="feedback-score-value">{interview.communicationScore}/10</span>
+                                                <span className="feedback-score-label">Communication</span>
+                                            </div>
+                                        </div>
+                                        {interview.comments && (
+                                            <p className="feedback-comments">"{interview.comments}"</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {isAwaitingFeedback && (
+                                    <p className="feedback-pending">
+                                        Interview scheduled — feedback hasn't been submitted yet.
+                                    </p>
+                                )}
+
+                                <p>
+                                    <strong>Applied:</strong>{" "}
+                                    {new Date(app.appliedAt).toLocaleString()}
+                                </p>
+
+                                <div className="actions">
+
+                                    {app.status === "APPLIED" && (
                                         <button
+                                            disabled={busyId === app.id}
                                             onClick={() =>
-                                                updateStatus(
+                                                void updateStatus(
                                                     app.id,
-                                                    "shortlist",
-                                                    "Candidate shortlisted"
+                                                    "under-review",
+                                                    "Moved to Under Review"
                                                 )
                                             }
                                         >
-                                            Shortlist
+                                            {busyId === app.id ? "Updating..." : "Under Review"}
                                         </button>
+                                    )}
 
+                                    {app.status === "UNDER_REVIEW" && (
+                                        <>
+                                            <button
+                                                disabled={busyId === app.id}
+                                                onClick={() =>
+                                                    void updateStatus(
+                                                        app.id,
+                                                        "shortlist",
+                                                        "Candidate shortlisted"
+                                                    )
+                                                }
+                                            >
+                                                {busyId === app.id ? "Updating..." : "Shortlist"}
+                                            </button>
+
+                                            <button
+                                                className="secondary"
+                                                disabled={busyId === app.id}
+                                                onClick={() =>
+                                                    void updateStatus(
+                                                        app.id,
+                                                        "reject",
+                                                        "Candidate rejected"
+                                                    )
+                                                }
+                                            >
+                                                {busyId === app.id ? "Updating..." : "Reject"}
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {app.status === "SHORTLISTED" && (
                                         <button
                                             onClick={() =>
-                                                updateStatus(
+                                                navigate("/dashboard/schedule-interview", {
+                                                    state: {
+                                                        applicationId: app.id,
+                                                        candidateEmail:
+                                                            candidates[app.candidateId]?.email ?? `Candidate #${app.candidateId}`,
+                                                        jobTitle: jobs.find((j) => j.id === app.jobId)?.title ?? "",
+                                                    },
+                                                })
+                                            }
+                                        >
+                                            Schedule Interview
+                                        </button>
+                                    )}
+
+                                    {app.status === "INTERVIEW_SCHEDULED" && (
+                                        <button
+                                            disabled={busyId === app.id}
+                                            onClick={() =>
+                                                void updateStatus(
                                                     app.id,
-                                                    "reject",
-                                                    "Candidate rejected"
+                                                    "select",
+                                                    "Candidate selected"
                                                 )
                                             }
                                         >
-                                            Reject
+                                            {busyId === app.id ? "Updating..." : "Select"}
                                         </button>
-                                    </>
-                                )}
+                                    )}
 
-                                {app.status === "SHORTLISTED" && (
-                                    <button
-                                        onClick={() =>
-                                            navigate("/dashboard/schedule-interview", {
-                                                state: {
-                                                    applicationId: app.id,
-                                                    candidateEmail:
-                                                        candidates[app.candidateId]?.email ?? `Candidate #${app.candidateId}`,
-                                                    jobTitle: jobs.find((j) => j.id === app.jobId)?.title ?? "",
-                                                },
-                                            })
-                                        }
-                                    >
-                                        Schedule Interview
-                                    </button>
-                                )}
+                                    {app.status === "SELECTED" && (
+                                        <button
+                                            disabled={busyId === app.id}
+                                            onClick={() =>
+                                                void updateStatus(
+                                                    app.id,
+                                                    "hire",
+                                                    "Candidate hired"
+                                                )
+                                            }
+                                        >
+                                            {busyId === app.id ? "Updating..." : "Hire"}
+                                        </button>
+                                    )}
 
-                                {app.status === "INTERVIEW_SCHEDULED" && (
-                                    <button
-                                        onClick={() =>
-                                            updateStatus(
-                                                app.id,
-                                                "select",
-                                                "Candidate selected"
-                                            )
-                                        }
-                                    >
-                                        Select
-                                    </button>
-                                )}
-
-                                {app.status === "SELECTED" && (
-                                    <button
-                                        onClick={() =>
-                                            updateStatus(
-                                                app.id,
-                                                "hire",
-                                                "Candidate hired"
-                                            )
-                                        }
-                                    >
-                                        Hire
-                                    </button>
-                                )}
+                                </div>
 
                             </div>
-
-                        </div>
-
-                    ))}
+                        );
+                    })}
 
                 </div>
 
