@@ -40,6 +40,8 @@ export default function JobsPage() {
   const [applyingId, setApplyingId] = useState<number | null>(null);
   const [busyJobId, setBusyJobId] = useState<number | null>(null);
   const [appliedJobIds, setAppliedJobIds] = useState<number[]>([]);
+  const [openApplyJobId, setOpenApplyJobId] = useState<number | null>(null);
+  const [coverLetterDraft, setCoverLetterDraft] = useState('');
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -87,7 +89,7 @@ export default function JobsPage() {
     }
   };
 
-  const apply = async (job: Job) => {
+  const apply = async (job: Job, coverLetter: string) => {
     if (userId === null) {
       setError('Please login again.');
       return;
@@ -106,11 +108,13 @@ export default function JobsPage() {
       await api.post('/applications', {
         candidateId: userId,
         jobId: job.id,
-        coverLetter: '',
+        coverLetter,
       });
 
       setAppliedJobIds((current) => [...current, job.id]);
       setMessage(`Successfully applied for "${job.title}".`);
+      setOpenApplyJobId(null);
+      setCoverLetterDraft('');
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       if (errorMessage.toLowerCase().includes('already')) {
@@ -270,19 +274,52 @@ export default function JobsPage() {
                       ))}
                     </div>
 
+                    {openApplyJobId === job.id && (
+                        <div className="field apply-form">
+                          <label className="field-label-text" htmlFor={`cover-letter-${job.id}`}>
+                            Cover letter (optional)
+                          </label>
+                          <textarea
+                              id={`cover-letter-${job.id}`}
+                              placeholder="Tell the recruiter why you're a good fit for this role"
+                              value={coverLetterDraft}
+                              onChange={(e) => setCoverLetterDraft(e.target.value)}
+                          />
+                          <div className="apply-form-actions">
+                            <button
+                                type="button"
+                                disabled={applyingId === job.id}
+                                onClick={() => void apply(job, coverLetterDraft)}
+                            >
+                              {applyingId === job.id ? 'Submitting...' : 'Submit Application'}
+                            </button>
+                            <button
+                                type="button"
+                                className="secondary"
+                                disabled={applyingId === job.id}
+                                onClick={() => {
+                                  setOpenApplyJobId(null);
+                                  setCoverLetterDraft('');
+                                }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                    )}
+
                     <div className="job-card-footer">
                       <span className="job-posted">Posted recently</span>
                       <div className="action-group">
-                        {role === 'CANDIDATE' && (
+                        {role === 'CANDIDATE' && openApplyJobId !== job.id && (
                             <button
                                 disabled={alreadyApplied || applyingId === job.id}
-                                onClick={() => void apply(job)}
+                                onClick={() => {
+                                  setOpenApplyJobId(job.id);
+                                  setCoverLetterDraft('');
+                                }}
                             >
-                              {alreadyApplied
-                                  ? 'Applied'
-                                  : applyingId === job.id
-                                      ? 'Applying...'
-                                      : 'Apply'}
+                              {alreadyApplied ? 'Applied' : 'Apply'}
                             </button>
                         )}
                         {role === 'RECRUITER' && job.recruiterId === userId && (
