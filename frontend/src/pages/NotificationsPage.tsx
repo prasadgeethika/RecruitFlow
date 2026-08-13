@@ -16,6 +16,7 @@ export default function NotificationsPage() {
 
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
+    const [busyId, setBusyId] = useState<number | null>(null);
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -53,6 +54,7 @@ export default function NotificationsPage() {
 
         setError("");
         setMessage("");
+        setBusyId(id);
 
         try {
 
@@ -65,6 +67,10 @@ export default function NotificationsPage() {
         } catch (err) {
 
             setError(getErrorMessage(err));
+
+        } finally {
+
+            setBusyId(null);
 
         }
     };
@@ -88,7 +94,10 @@ export default function NotificationsPage() {
                 )}
 
                 {!loading && notifications.length === 0 && (
-                    <p>No notifications.</p>
+                    <div className="empty-state">
+                        <p className="empty-state-title">No notifications</p>
+                        <p className="empty-state-hint">You're all caught up — new updates will show up here.</p>
+                    </div>
                 )}
 
                 <div className="notification-list">
@@ -116,9 +125,10 @@ export default function NotificationsPage() {
                                 {!notification.read && (
                                     <button
                                         className="secondary"
+                                        disabled={busyId === notification.id}
                                         onClick={() => void markRead(notification.id)}
                                     >
-                                        Mark as read
+                                        {busyId === notification.id ? "Updating..." : "Mark as read"}
                                     </button>
                                 )}
                             </div>
