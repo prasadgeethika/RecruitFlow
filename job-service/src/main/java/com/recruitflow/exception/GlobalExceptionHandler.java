@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -47,6 +48,19 @@ public class GlobalExceptionHandler {
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .orElse("Validation failed");
         return build(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    // Handlers below throw ResponseStatusException with a specific status
+    // and message (AiJobDescriptionService does this for 503/502/429/400).
+    // Without this handler, the catch-all below intercepts it first (it IS
+    // an Exception) and flattens every one of those into a generic 500 -
+    // exactly what was happening with the AI description errors.
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(
+            ResponseStatusException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        String message = ex.getReason() != null ? ex.getReason() : status.getReasonPhrase();
+        return build(status, message, request);
     }
 
     // Catch-all safety net — anything unexpected becomes a clean 500

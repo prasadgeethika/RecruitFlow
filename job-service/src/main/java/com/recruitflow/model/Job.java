@@ -13,7 +13,12 @@ public class Job {
     @Column(nullable = false)
     private String title;
 
-    @Column(length = 2000)
+    // TEXT, not a bounded varchar: a manually-written description was
+    // usually short, but the AI-generated ones (headings + sections) can
+    // comfortably exceed 2000 chars even at "under 350 words" - a fixed
+    // cap here doesn't reflect a real constraint, just an assumption that
+    // no longer holds now that generation exists.
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -39,11 +44,6 @@ public class Job {
 
     // getters/setters
     public Long getId() { return id; }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }

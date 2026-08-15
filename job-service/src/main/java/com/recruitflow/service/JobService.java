@@ -69,6 +69,8 @@ public class JobService {
         return jobRepository.save(job);
     }
 
+    // Fuzzy typo-tolerant search via PostgreSQL pg_trgm - see
+    // JobRepository.search() and PgTrgmInitializer.
     public List<Job> search(String skill, String location, Integer experience) {
         return jobRepository.search(skill, location, experience);
     }
