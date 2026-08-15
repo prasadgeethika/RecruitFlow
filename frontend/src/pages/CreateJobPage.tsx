@@ -14,6 +14,7 @@ export default function CreateJobPage() {
     const [createdJobId, setCreatedJobId] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [publishing, setPublishing] = useState(false);
+    const [generating, setGenerating] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -23,6 +24,28 @@ export default function CreateJobPage() {
         setSkills("");
         setLocation("");
         setExperienceRequired(0);
+    };
+
+    const generateDescription = async () => {
+        if (!title) {
+            setError("Enter a job title first so the description matches the role.");
+            return;
+        }
+
+        setError("");
+        setGenerating(true);
+
+        try {
+            const response = await api.post<{ description: string }>(
+                "/jobs/generate-description",
+                { title, skills, experienceRequired }
+            );
+            setDescription(response.data.description);
+        } catch (err) {
+            setError(getErrorMessage(err));
+        } finally {
+            setGenerating(false);
+        }
     };
 
     const handleSubmit = async (e: FormEvent) => {
@@ -98,14 +121,26 @@ export default function CreateJobPage() {
                     </div>
 
                     <div className="field">
-                        <label className="field-label-text" htmlFor="job-description">Job Description</label>
+                        <div className="field-label-row">
+                            <label className="field-label-text" htmlFor="job-description">Job Description</label>
+                            <button
+                                type="button"
+                                className="secondary generate-btn"
+                                disabled={generating}
+                                onClick={() => void generateDescription()}
+                            >
+                                {generating ? "Generating..." : "✨ Generate with AI"}
+                            </button>
+                        </div>
                         <textarea
                             id="job-description"
                             placeholder="Describe the responsibilities, role, and expectations"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
-                        <p className="field-hint">What the person will actually be doing day to day.</p>
+                        <p className="field-hint">
+                            What the person will actually be doing day to day. Fill in title/skills/experience above, then generate a draft to edit — or write your own.
+                        </p>
                     </div>
 
                     <div className="field">

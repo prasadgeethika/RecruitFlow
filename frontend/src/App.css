@@ -234,7 +234,8 @@ body {
 }
 
 @media (max-width: 1024px) {
-  .dashboard-body {
+  .dashboard-body,
+  .app-shell.sidebar-closed .dashboard-body {
     grid-template-columns: 1fr;
   }
 
@@ -266,6 +267,7 @@ body {
   }
 
   .dashboard-main {
+    grid-column: 1;
     margin-top: 24px;
   }
 }
@@ -872,7 +874,8 @@ button:disabled {
     padding: 24px;
   }
 
-  .dashboard-body {
+  .dashboard-body,
+  .app-shell.sidebar-closed .dashboard-body {
     grid-template-columns: 1fr;
     margin: 0 auto 16px;
     padding: 0 16px 24px;
@@ -899,6 +902,10 @@ button:disabled {
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
+  }
+
+  .dashboard-main {
+    grid-column: 1;
   }
 
   .topbar {
@@ -1549,4 +1556,18 @@ button:disabled {
   display: flex;
   gap: 10px;
   margin-top: 10px;
+}
+
+/* --- AI "Generate description" button on Create Job --- */
+.field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.generate-btn {
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
