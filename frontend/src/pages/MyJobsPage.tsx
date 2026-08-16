@@ -62,6 +62,26 @@ export default function MyJobsPage() {
         }
     };
 
+    const deleteDraft = async (job: Job) => {
+        if (!window.confirm(`Delete the draft "${job.title}"? This can't be undone.`)) {
+            return;
+        }
+
+        setBusyId(job.id);
+        setError("");
+        setMessage("");
+
+        try {
+            await api.delete(`/jobs/${job.id}`);
+            setMessage(`Draft "${job.title}" deleted.`);
+            await loadJobs();
+        } catch (err) {
+            setError(getErrorMessage(err));
+        } finally {
+            setBusyId(null);
+        }
+    };
+
     const statusClass = (status: Job["status"]) =>
         status === "OPEN" ? "badge badge-open" :
             status === "CLOSED" ? "badge badge-closed" : "badge badge-draft";
@@ -71,7 +91,7 @@ export default function MyJobsPage() {
             <div className="card">
                 <div className="page-header">
                     <h2>My Job Postings</h2>
-                    <button onClick={() => navigate("/create-job")}>+ New Job</button>
+                    <button onClick={() => navigate("/dashboard/create-job")}>+ New Job</button>
                 </div>
 
                 {loading && <p>Loading your jobs...</p>}
@@ -79,9 +99,12 @@ export default function MyJobsPage() {
                 {error && <p className="error">{error}</p>}
 
                 {!loading && jobs.length === 0 && (
-                    <p className="empty-state">
-                        You haven't posted any jobs yet. Click "+ New Job" to get started.
-                    </p>
+                    <div className="empty-state">
+                        <p className="empty-state-title">No jobs yet</p>
+                        <p className="empty-state-hint">
+                            You haven't posted any jobs yet — click "+ New Job" to get started.
+                        </p>
+                    </div>
                 )}
 
                 <div className="job-list">
@@ -112,17 +135,27 @@ export default function MyJobsPage() {
                                 )}
 
                                 {job.status === "DRAFT" && (
-                                    <button
-                                        className="secondary"
-                                        onClick={() => navigate(`/edit-job/${job.id}`, { state: job })}
-                                    >
-                                        Edit
-                                    </button>
+                                    <>
+                                        <button
+                                            className="secondary"
+                                            disabled={busyId === job.id}
+                                            onClick={() => navigate(`/dashboard/edit-job/${job.id}`, { state: job })}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="secondary"
+                                            disabled={busyId === job.id}
+                                            onClick={() => void deleteDraft(job)}
+                                        >
+                                            {busyId === job.id ? "Deleting..." : "Delete Draft"}
+                                        </button>
+                                    </>
                                 )}
 
                                 {job.status !== "DRAFT" && (
                                     <span className="locked-note">
-                                        Locked — only draft jobs can be edited
+                                        Locked — only draft jobs can be edited or deleted
                                     </span>
                                 )}
                             </div>

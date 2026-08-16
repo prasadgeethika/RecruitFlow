@@ -51,7 +51,7 @@ export default function EditJobPage() {
                 experienceRequired,
             });
             setMessage("Job updated.");
-            setTimeout(() => navigate("/my-jobs"), 800);
+            setTimeout(() => navigate("/dashboard/my-jobs"), 800);
         } catch (err) {
             setError(getErrorMessage(err));
         }

@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
 export default function CreateJobPage() {
     const { userId } = useAuth();
+    const navigate = useNavigate();
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -14,6 +16,7 @@ export default function CreateJobPage() {
     const [createdJobId, setCreatedJobId] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [publishing, setPublishing] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -96,6 +99,36 @@ export default function CreateJobPage() {
             setError(getErrorMessage(err));
         } finally {
             setPublishing(false);
+        }
+    };
+
+    const editJob = () => {
+        if (createdJobId == null) return;
+
+        navigate(`/dashboard/edit-job/${createdJobId}`, {
+            state: { title, description, skills, location, experienceRequired },
+        });
+    };
+
+    const deleteJob = async () => {
+        if (createdJobId == null) return;
+
+        if (!window.confirm(`Delete this draft "${title}"? This can't be undone.`)) {
+            return;
+        }
+
+        setError("");
+        setDeleting(true);
+
+        try {
+            await api.delete(`/jobs/${createdJobId}`);
+            setMessage("Draft deleted.");
+            setCreatedJobId(null);
+            resetForm();
+        } catch (err) {
+            setError(getErrorMessage(err));
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -183,13 +216,29 @@ export default function CreateJobPage() {
                 </form>
 
                 {createdJobId !== null && (
-                    <button
-                        onClick={() => void publishJob()}
-                        className="publish-btn"
-                        disabled={publishing}
-                    >
-                        {publishing ? "Publishing..." : "Publish Job"}
-                    </button>
+                    <div className="draft-actions">
+                        <button
+                            onClick={() => void publishJob()}
+                            className="publish-btn"
+                            disabled={publishing || deleting}
+                        >
+                            {publishing ? "Publishing..." : "Publish Job"}
+                        </button>
+                        <button
+                            className="secondary"
+                            onClick={editJob}
+                            disabled={publishing || deleting}
+                        >
+                            Edit
+                        </button>
+                        <button
+                            className="secondary"
+                            onClick={() => void deleteJob()}
+                            disabled={publishing || deleting}
+                        >
+                            {deleting ? "Deleting..." : "Delete Draft"}
+                        </button>
+                    </div>
                 )}
 
                 {message && <p className="success">{message}</p>}
