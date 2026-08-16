@@ -1571,3 +1571,11 @@ button:disabled {
   font-size: 0.82rem;
   white-space: nowrap;
 }
+
+/* --- Draft actions row on Create Job (Publish/Edit/Delete) --- */
+.draft-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}

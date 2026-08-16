@@ -35,6 +35,7 @@ export default function Navbar() {
     }
 
     if (role === 'RECRUITER') {
+        navItems.push({ path: '/dashboard/my-jobs', label: 'My Jobs', icon: icons.jobs });
         navItems.push({ path: '/dashboard/create-job', label: 'Create Job', icon: icons.create });
         navItems.push({ path: '/dashboard/review-applications', label: 'Review Applications', icon: icons.review });
         navItems.push({ path: '/dashboard/schedule-interview', label: 'Schedule Interview', icon: icons.interview });
@@ -51,13 +52,7 @@ export default function Navbar() {
             <div className="navbar-top">
                 <div>
                     <p className="sidebar-logo">RecruitFlow</p>
-                    <p className="sidebar-role">
-                        {role === 'ADMIN'
-                            ? 'Admin'
-                            : role === 'RECRUITER'
-                                ? 'Recruiter'
-                                : 'Candidate'}
-                    </p>
+                    <p className="sidebar-role">{role === 'RECRUITER' ? 'Recruiter' : 'Candidate'}</p>
                 </div>
             </div>
 
