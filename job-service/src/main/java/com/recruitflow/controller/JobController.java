@@ -36,6 +36,12 @@ public class JobController {
         return ResponseEntity.ok(jobService.open(id));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDraft(@PathVariable Long id) {
+        jobService.deleteDraft(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/search")
     public ResponseEntity<List<Job>> search(
             @RequestParam(required = false) String skill,

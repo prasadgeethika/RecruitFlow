@@ -69,6 +69,23 @@ public class JobService {
         return jobRepository.save(job);
     }
 
+    // Only DRAFT jobs can be deleted - once a job has been OPEN, candidates
+    // may have applied to it, and deleting it out from under an application
+    // would orphan that application's job reference. Recruiters can still
+    // close an OPEN/past job, just not delete it.
+    public void deleteDraft(Long id) {
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Job not found"));
+
+        if (job.getStatus() != Job.Status.DRAFT) {
+            throw new IllegalStateException(
+                    "Only draft jobs can be deleted. Close the job instead if it's already published."
+            );
+        }
+
+        jobRepository.delete(job);
+    }
+
     // Fuzzy typo-tolerant search via PostgreSQL pg_trgm - see
     // JobRepository.search() and PgTrgmInitializer.
     public List<Job> search(String skill, String location, Integer experience) {
