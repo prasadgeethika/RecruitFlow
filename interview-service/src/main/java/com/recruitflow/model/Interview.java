@@ -19,16 +19,15 @@ public class Interview {
     private Integer technicalScore;
     private Integer communicationScore;
 
-    @Column(length = 2000)
+    // TEXT, not a bounded varchar - same reasoning as Job.description: a
+    // manually-typed comment is short, but no reason to risk the same
+    // "value too long" failure we hit there once AI-suggested comments
+    // exist too.
+    @Column(columnDefinition = "TEXT")
     private String comments;
 
     // getters/setters
     public Long getId() { return id; }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public Long getApplicationId() { return applicationId; }
     public void setApplicationId(Long applicationId) { this.applicationId = applicationId; }
     public LocalDateTime getScheduledAt() { return scheduledAt; }

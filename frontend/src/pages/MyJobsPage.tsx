@@ -82,9 +82,8 @@ export default function MyJobsPage() {
         }
     };
 
-    const statusClass = (status: Job["status"]) =>
-        status === "OPEN" ? "badge badge-open" :
-            status === "CLOSED" ? "badge badge-closed" : "badge badge-draft";
+    const statusPillClass = (status: Job["status"]) =>
+        `status-pill status-pill--${status.toLowerCase()}`;
 
     return (
         <div className="page">
@@ -112,7 +111,10 @@ export default function MyJobsPage() {
                         <div key={job.id} className="job-card">
                             <div className="job-card-header">
                                 <h3>{job.title}</h3>
-                                <span className={statusClass(job.status)}>{job.status}</span>
+                                <span className={statusPillClass(job.status)}>
+                                    <span className="status-dot" />
+                                    {job.status}
+                                </span>
                             </div>
 
                             <p>{job.description}</p>

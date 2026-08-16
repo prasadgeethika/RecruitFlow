@@ -20,10 +20,12 @@ interface Application {
 
 interface CandidateInfo {
     email: string;
+    fullName?: string;
     skills?: string;
     location?: string;
     contactNumber?: string;
     resumeUrl?: string;
+    resumeFileName?: string;
 }
 
 interface Interview {
@@ -242,12 +244,16 @@ export default function RecruiterReviewPage() {
                             <div key={app.id} className="job-card">
 
                                 <div className="job-card-header">
-                                    <h3>{candidates[app.candidateId]?.email ?? `Candidate #${app.candidateId}`}</h3>
+                                    <h3>{candidates[app.candidateId]?.fullName || candidates[app.candidateId]?.email || `Candidate #${app.candidateId}`}</h3>
                                     <span className={statusPillClass(app.status)}>
                                     <span className="status-dot" />
                                         {statusLabel(app.status)}
                                 </span>
                                 </div>
+
+                                {candidates[app.candidateId]?.fullName && candidates[app.candidateId]?.email && (
+                                    <p><strong>Email:</strong> {candidates[app.candidateId].email}</p>
+                                )}
 
                                 {candidates[app.candidateId]?.skills && (
                                     <p><strong>Skills:</strong> {candidates[app.candidateId].skills}</p>
@@ -261,7 +267,20 @@ export default function RecruiterReviewPage() {
                                     <p><strong>Contact:</strong> {candidates[app.candidateId].contactNumber}</p>
                                 )}
 
-                                {candidates[app.candidateId]?.resumeUrl && (
+                                {candidates[app.candidateId]?.resumeFileName && (
+                                    <p>
+                                        <strong>Resume:</strong>{" "}
+                                        <a
+                                            href={`http://localhost:8080/api/profiles/candidates/${app.candidateId}/resume-file`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            View resume ({candidates[app.candidateId].resumeFileName})
+                                        </a>
+                                    </p>
+                                )}
+
+                                {!candidates[app.candidateId]?.resumeFileName && candidates[app.candidateId]?.resumeUrl && (
                                     <p>
                                         <strong>Resume:</strong>{" "}
                                         <a href={candidates[app.candidateId].resumeUrl} target="_blank" rel="noreferrer">

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api, { getErrorMessage } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -47,7 +46,6 @@ export default function JobsPage() {
   const [error, setError] = useState('');
 
   const { userId, role } = useAuth();
-  const navigate = useNavigate();
 
   const search = async (
       searchSkill = skill,
@@ -323,26 +321,17 @@ export default function JobsPage() {
                             </button>
                         )}
                         {role === 'RECRUITER' && job.recruiterId === userId && (
-                            <>
-                              <button
-                                  type="button"
-                                  className="secondary"
-                                  onClick={() => navigate(`/edit-job/${job.id}`, { state: job })}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                  type="button"
-                                  disabled={busyJobId === job.id}
-                                  onClick={() => void toggleJobStatus(job)}
-                              >
-                                {busyJobId === job.id
-                                    ? 'Updating...'
-                                    : job.status === 'OPEN'
-                                        ? 'Close'
-                                        : 'Publish'}
-                              </button>
-                            </>
+                            <button
+                                type="button"
+                                disabled={busyJobId === job.id}
+                                onClick={() => void toggleJobStatus(job)}
+                            >
+                              {busyJobId === job.id
+                                  ? 'Updating...'
+                                  : job.status === 'OPEN'
+                                      ? 'Close'
+                                      : 'Publish'}
+                            </button>
                         )}
                       </div>
                     </div>

@@ -30,6 +30,7 @@ export default function FeedbackPage() {
     const [communicationScore, setCommunicationScore] = useState(0);
     const [comments, setComments] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [generating, setGenerating] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -84,6 +85,28 @@ export default function FeedbackPage() {
 
     const scoresInRange = technicalScore >= 1 && technicalScore <= 10
         && communicationScore >= 1 && communicationScore <= 10;
+
+    const generateComment = async () => {
+        if (!scoresInRange) {
+            setError("Enter both scores (1-10) before generating a suggested comment.");
+            return;
+        }
+
+        setError("");
+        setGenerating(true);
+
+        try {
+            const response = await api.post<{ comment: string }>(
+                "/interviews/generate-comment",
+                { technicalScore, communicationScore }
+            );
+            setComments(response.data.comment);
+        } catch (err) {
+            setError(getErrorMessage(err));
+        } finally {
+            setGenerating(false);
+        }
+    };
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -194,14 +217,27 @@ export default function FeedbackPage() {
                     </div>
 
                     <div className="field">
-                        <label className="field-label-text" htmlFor="feedback-comments">Comments</label>
+                        <div className="field-label-row">
+                            <label className="field-label-text" htmlFor="feedback-comments">Comments</label>
+                            <button
+                                type="button"
+                                className="secondary generate-btn"
+                                disabled={generating || !scoresInRange}
+                                onClick={() => void generateComment()}
+                            >
+                                {generating ? "Generating..." : "✨ Suggest comment"}
+                            </button>
+                        </div>
                         <textarea
                             id="feedback-comments"
                             placeholder="Additional observations about the candidate's performance"
                             value={comments}
                             onChange={(e) => setComments(e.target.value)}
                         />
-                        <p className="field-hint">Optional, but recruiters will see this before making a decision.</p>
+                        <p className="field-hint">
+                            Enter both scores above to enable suggestions. The AI only sees the scores, not
+                            what actually happened in the interview — review and personalize before submitting.
+                        </p>
                     </div>
 
                     <button type="submit" disabled={applicationId == null || submitting}>
